@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="blue">#FF3066BE</color>
+    <color name="argentinian_blue">#FF60AFFF</color>
+    <color name="sky_blue">#FF28C2FF</color>
+    <color name="aqua">#FF2AF5FF</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
