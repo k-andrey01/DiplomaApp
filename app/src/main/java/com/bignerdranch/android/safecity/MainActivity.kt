@@ -1,27 +1,26 @@
 package com.bignerdranch.android.safecity
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement.Absolute.Center
-import androidx.compose.foundation.layout.Arrangement.Center
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.BiasAbsoluteAlignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.viewinterop.AndroidView
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import com.bignerdranch.android.safecity.ui.theme.SkyBlue
 import com.bignerdranch.android.safecity.ui.theme.White
-import org.intellij.lang.annotations.JdkConstants
+import com.yandex.mapkit.MapKitFactory
+import com.yandex.mapkit.mapview.MapView
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,6 +32,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                     TopBar()
+                    //MyMapView("api-key", context = this)
                     NavigationBar(1)
                 }
             }
@@ -89,14 +89,38 @@ fun NavigationBar(selected: Int){
     }
 }
 
-@Preview
 @Composable
-fun NavigationPreview() {
-    NavigationBar(1)
+fun MyMapView(apiKey: String, context: Context) {
+    val mapView = remember { MapView(context).apply { MapKitFactory.setApiKey(apiKey) } }
+
+    AndroidView(
+        factory = { mapView },
+        update = { view ->
+            // Обновите карту здесь, если это необходимо
+        }
+    )
+
+    DisposableEffect(Unit) {
+        onDispose {
+            mapView.onStop()
+        }
+    }
 }
 
-@Preview
-@Composable
-fun TopBarPreview() {
-    TopBar()
-}
+//@Preview
+//@Composable
+//fun NavigationPreview() {
+//    NavigationBar(1)
+//}
+//
+//@Preview
+//@Composable
+//fun TopBarPreview() {
+//    TopBar()
+//}
+//
+//@Preview
+//@Composable
+//fun MyMapViewPreview() {
+//    MyMapView("fd17ae04-2838-4574-9543-c2fc3b1c0c0c", context = this)
+//}
