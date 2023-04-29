@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                     TopBar()
-                    //MyMapView("api-key", context = this)
+                    //MyMapView(ConfProperties.getProperty("api_key"), context = this)
                     NavigationBar(1)
                 }
             }

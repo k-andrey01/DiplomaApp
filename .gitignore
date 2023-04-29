@@ -14,4 +14,4 @@
 local.properties
 /.idea
 /.gradle
-/values
+/app/src/main/res/usersValues
