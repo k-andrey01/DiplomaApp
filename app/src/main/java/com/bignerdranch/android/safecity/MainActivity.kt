@@ -1,6 +1,7 @@
 package com.bignerdranch.android.safecity
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,6 +14,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
@@ -31,9 +33,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    TopBar()
+                    TopBar("Карта")
                     //MyMapView(ConfProperties.getProperty("api_key"), context = this)
-                    NavigationBar(1)
+                    NavigationBar(1, context = LocalContext.current)
                 }
             }
         }
@@ -41,12 +43,12 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun TopBar() {
+fun TopBar(name: String) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Карта",
+                    Text(name,
                         modifier = Modifier.fillMaxWidth(),
                         color = White,
                         textAlign = TextAlign.Center)
@@ -59,28 +61,32 @@ fun TopBar() {
 }
 
 @Composable
-fun NavigationBar(selected: Int){
+fun NavigationBar(selected: Int, context: Context){
     Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxHeight()) {
         BottomAppBar {
-            IconButton(onClick = { }){
+            IconButton(onClick = { val intent = Intent(context, MainActivity::class.java)
+                                   context.startActivity(intent)}){
                 Icon(Icons.Filled.LocationOn,
                     contentDescription = "Карта",
                     tint = if (selected == 1) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium))
             }
             Spacer(Modifier.weight(1f, true))
-            IconButton(onClick = { }){
+            IconButton(onClick = { val intent = Intent(context, AnalysisActivity::class.java)
+                                   context.startActivity(intent)}){
                 Icon(Icons.Filled.Info,
                     contentDescription = "Анализ",
                     tint = if (selected == 2) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium))
             }
             Spacer(Modifier.weight(1f, true))
-            IconButton(onClick = { }){
+            IconButton(onClick = { val intent = Intent(context, MyListActivity::class.java)
+                                   context.startActivity(intent)}){
                 Icon(Icons.Filled.List,
                     contentDescription = "Мои отметки",
                     tint = if (selected == 3) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium))
             }
             Spacer(Modifier.weight(1f, true))
-            IconButton(onClick = { }){
+            IconButton(onClick = { val intent = Intent(context, ProfileActivity::class.java)
+                                   context.startActivity(intent)}){
                 Icon(Icons.Filled.AccountBox,
                     contentDescription = "Личный кабинет",
                     tint = if (selected == 4) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium))
@@ -106,21 +112,3 @@ fun MyMapView(apiKey: String, context: Context) {
         }
     }
 }
-
-//@Preview
-//@Composable
-//fun NavigationPreview() {
-//    NavigationBar(1)
-//}
-//
-//@Preview
-//@Composable
-//fun TopBarPreview() {
-//    TopBar()
-//}
-//
-//@Preview
-//@Composable
-//fun MyMapViewPreview() {
-//    MyMapView("fd17ae04-2838-4574-9543-c2fc3b1c0c0c", context = this)
-//}
