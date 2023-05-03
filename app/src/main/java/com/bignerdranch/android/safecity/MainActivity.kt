@@ -33,8 +33,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    TopBar("Карта")
-                    //MyMapView(ConfProperties.getProperty("api_key"), context = this)
+                    Column {
+                        TopBar("Карта")
+                        MyMapView(LocalContext.current)
+                    }
                     NavigationBar(1, context = LocalContext.current)
                 }
             }
@@ -44,20 +46,15 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun TopBar(name: String) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(name,
-                        modifier = Modifier.fillMaxWidth(),
-                        color = White,
-                        textAlign = TextAlign.Center)
+    TopAppBar(
+        title = {
+            Text(name,
+                modifier = Modifier.fillMaxWidth(),
+                color = White,
+                textAlign = TextAlign.Center)
                 },
-                backgroundColor = SkyBlue,
-            )
-        }
-    ) { innerPadding ->
-    }
+        backgroundColor = SkyBlue,
+    )
 }
 
 @Composable
@@ -96,8 +93,10 @@ fun NavigationBar(selected: Int, context: Context){
 }
 
 @Composable
-fun MyMapView(apiKey: String, context: Context) {
-    val mapView = remember { MapView(context).apply { MapKitFactory.setApiKey(apiKey) } }
+fun MyMapView(context: Context) {
+    val apiKey = ConfProperties.getProperty("api_key")
+    MapKitFactory.setApiKey(apiKey)
+    val mapView = remember { MapView(context) }
 
     AndroidView(
         factory = { mapView },
