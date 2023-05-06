@@ -18,7 +18,7 @@ class MyApp : Application() {
 //        val properties = Properties()
 //        val inputStream: InputStream = this.resources.assets.open("usersValues/conf.properties")
 //        properties.load(inputStream)
-//        apiKey = properties.getProperty("api_key")
+        apiKey = resources.getString(R.string.api_key)
         //val apiKeyGetter = ApiKey()
 
         //apiKey = apiKeyGetter.getApiKey()

@@ -15,3 +15,4 @@ local.properties
 /.idea
 /.gradle
 /app/src/main/res/usersValues
+src/main/res/values/usersStrings.xml
