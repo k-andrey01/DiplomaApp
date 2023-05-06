@@ -3,6 +3,7 @@ package com.bignerdranch.android.safecity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -15,9 +16,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.bignerdranch.android.safecity.ui.theme.Blue
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import com.bignerdranch.android.safecity.ui.theme.SkyBlue
 import com.bignerdranch.android.safecity.ui.theme.White
@@ -61,7 +64,7 @@ fun TopBar(name: String) {
                 color = White,
                 textAlign = TextAlign.Center)
         },
-        backgroundColor = SkyBlue,
+        backgroundColor = Blue,
     )
 }
 
@@ -107,8 +110,8 @@ fun MyMapView(context: Context) {
     AndroidView(
         factory = { mapView },
         update = { view ->
+            MapKitFactory.getInstance().onStart()
             if (!MapKitFactory.getInstance().isValid) {
-                MapKitFactory.getInstance().onStart()
                 MapKitFactory.getInstance().setApiKey(MyApp.apiKey)
             }
         }
@@ -118,6 +121,27 @@ fun MyMapView(context: Context) {
         onDispose {
             mapView.onStop()
             MapKitFactory.getInstance().onStop()
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // Добавляем кнопку поверх карты
+        FloatingActionButton(
+            onClick = { Toast.makeText(context, "Добавление опасности в разработке", Toast.LENGTH_SHORT).show() },
+            backgroundColor = Blue,
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.BottomEnd)
+        ) {
+            Icon(
+                Icons.Default.Add,
+                contentDescription = "Add",
+                tint = White,
+                modifier = Modifier
+                    .size(45.dp)
+            )
         }
     }
 }
