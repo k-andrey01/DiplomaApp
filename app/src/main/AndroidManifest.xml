@@ -12,7 +12,8 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/sc"
         android:supportsRtl="true"
-        android:theme="@style/SafeCityTheme">
+        android:theme="@style/SafeCityTheme"
+        android:name=".MyApp">
         <activity
             android:name=".MainActivity"
             android:exported="true">

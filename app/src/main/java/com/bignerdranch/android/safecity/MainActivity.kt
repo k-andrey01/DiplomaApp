@@ -16,7 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import com.bignerdranch.android.safecity.ui.theme.SkyBlue
@@ -33,9 +33,17 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
+
                     Column {
                         TopBar("Карта")
-                        MyMapView(LocalContext.current)
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        ) {
+                            MyMapView(LocalContext.current)
+                        }
+                        Spacer(modifier = Modifier.height(56.dp))
                     }
                     NavigationBar(1, context = LocalContext.current)
                 }
@@ -52,7 +60,7 @@ fun TopBar(name: String) {
                 modifier = Modifier.fillMaxWidth(),
                 color = White,
                 textAlign = TextAlign.Center)
-                },
+        },
         backgroundColor = SkyBlue,
     )
 }
@@ -62,28 +70,28 @@ fun NavigationBar(selected: Int, context: Context){
     Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxHeight()) {
         BottomAppBar {
             IconButton(onClick = { val intent = Intent(context, MainActivity::class.java)
-                                   context.startActivity(intent)}){
+                context.startActivity(intent)}){
                 Icon(Icons.Filled.LocationOn,
                     contentDescription = "Карта",
                     tint = if (selected == 1) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium))
             }
             Spacer(Modifier.weight(1f, true))
             IconButton(onClick = { val intent = Intent(context, AnalysisActivity::class.java)
-                                   context.startActivity(intent)}){
+                context.startActivity(intent)}){
                 Icon(Icons.Filled.Info,
                     contentDescription = "Анализ",
                     tint = if (selected == 2) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium))
             }
             Spacer(Modifier.weight(1f, true))
             IconButton(onClick = { val intent = Intent(context, MyListActivity::class.java)
-                                   context.startActivity(intent)}){
+                context.startActivity(intent)}){
                 Icon(Icons.Filled.List,
                     contentDescription = "Мои отметки",
                     tint = if (selected == 3) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium))
             }
             Spacer(Modifier.weight(1f, true))
             IconButton(onClick = { val intent = Intent(context, ProfileActivity::class.java)
-                                   context.startActivity(intent)}){
+                context.startActivity(intent)}){
                 Icon(Icons.Filled.AccountBox,
                     contentDescription = "Личный кабинет",
                     tint = if (selected == 4) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium))
@@ -94,20 +102,22 @@ fun NavigationBar(selected: Int, context: Context){
 
 @Composable
 fun MyMapView(context: Context) {
-    val apiKey = ConfProperties.getProperty("api_key")
-    MapKitFactory.setApiKey(apiKey)
     val mapView = remember { MapView(context) }
 
     AndroidView(
         factory = { mapView },
         update = { view ->
-            // Обновите карту здесь, если это необходимо
+            if (!MapKitFactory.getInstance().isValid) {
+                MapKitFactory.getInstance().onStart()
+                MapKitFactory.getInstance().setApiKey(MyApp.apiKey)
+            }
         }
     )
 
     DisposableEffect(Unit) {
         onDispose {
             mapView.onStop()
+            MapKitFactory.getInstance().onStop()
         }
     }
 }
