@@ -15,13 +15,7 @@ class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-//        val properties = Properties()
-//        val inputStream: InputStream = this.resources.assets.open("usersValues/conf.properties")
-//        properties.load(inputStream)
         apiKey = resources.getString(R.string.api_key)
-        //val apiKeyGetter = ApiKey()
-
-        //apiKey = apiKeyGetter.getApiKey()
         MapKitFactory.setApiKey(apiKey)
 
         val intent = Intent(getApplicationContext(), MainActivity::class.java)

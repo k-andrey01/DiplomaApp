@@ -6,7 +6,7 @@ import javax.mail.internet.MimeMessage;
 import java.util.Properties;
 
 public class MailSender {
-    public void sendMail(String term){
+    public void sendMail(String term, String mailFrom, String mailTo, String password){
         Properties properties = new Properties();
         //Хост или IP-адрес почтового сервера
         properties.put("mail.smtp.host", "smtp.rambler.ru");
@@ -23,7 +23,7 @@ public class MailSender {
                 new Authenticator() {
                     @Override
                     protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(ConfProperties.getProperty("mail_from"), ConfProperties.getProperty("password"));
+                        return new PasswordAuthentication(mailFrom, password);
                     }
                 });
 
@@ -32,9 +32,9 @@ public class MailSender {
             //Создаем новое почтовое сообщение
             MimeMessage messager = new MimeMessage(session);
             //От кого
-            messager.setFrom(new InternetAddress(ConfProperties.getProperty("mail_from")));
+            messager.setFrom(new InternetAddress(mailFrom));
             //Кому
-            messager.setRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(ConfProperties.getProperty("mail_to")));
+            messager.setRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(mailTo));
             //Тема письма
             messager.setSubject("SafeCity вопросы и предложения");
             //Текст письма
