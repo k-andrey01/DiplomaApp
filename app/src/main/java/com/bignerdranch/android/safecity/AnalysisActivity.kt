@@ -37,7 +37,7 @@ class AnalysisActivity : ComponentActivity() {
                 ) {
                     Column {
                         TopBar("Анализ")
-                        MyScreen()
+                        DropdownListWithDiagram()
                         Spacer(modifier = Modifier.height(56.dp))
                     }
                     NavigationBar(2, context = LocalContext.current)
@@ -48,14 +48,14 @@ class AnalysisActivity : ComponentActivity() {
 }
 
 @Composable
-fun MyScreen() {
-    MyDropdownList()
+fun DropdownListWithDiagram() {
+    DropdownList()
     Spacer(modifier = Modifier.height(50.dp))
-    MyChart()
+    Chart()
 }
 
 @Composable
-fun MyDropdownList() {
+fun DropdownList() {
     val options = listOf("Option 1", "Option 2", "Option 3")
     var selectedOption by remember { mutableStateOf(0) }
     var expanded by remember { mutableStateOf(false) }
@@ -63,7 +63,8 @@ fun MyDropdownList() {
     Box(modifier = Modifier
         .fillMaxWidth()
         .border(width = 1.dp, color = Color.Black)
-        .clickable(onClick = { expanded = true })) {
+        .clickable(onClick = { expanded = true })
+    ) {
         TextButton(
             onClick = { expanded = true }
         ) {
@@ -88,7 +89,7 @@ fun MyDropdownList() {
                     selectedOption = index
                     expanded = false
                 }) {
-                    Text(text = option)
+                    Text(text = option, color = Blue)
                 }
             }
         }
@@ -96,7 +97,7 @@ fun MyDropdownList() {
 }
 
 @Composable
-fun MyChart() {
+fun Chart() {
     PieChart(
         pieChartData = PieChartData(
             slices = listOf(
@@ -106,7 +107,8 @@ fun MyChart() {
             )
         ),
         // Optional properties.
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .height(350.dp),
         animation = simpleChartAnimation(),
         sliceDrawer = SimpleSliceDrawer()

@@ -59,45 +59,63 @@ class MainActivity : ComponentActivity() {
 fun TopBar(name: String) {
     TopAppBar(
         title = {
-            Text(name,
+            Text(
+                name,
                 modifier = Modifier.fillMaxWidth(),
                 color = White,
-                textAlign = TextAlign.Center)
+                textAlign = TextAlign.Center
+            )
         },
         backgroundColor = Blue,
     )
 }
 
 @Composable
-fun NavigationBar(selected: Int, context: Context){
+fun NavigationBar(selected: Int, context: Context) {
     Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxHeight()) {
         BottomAppBar {
-            IconButton(onClick = { val intent = Intent(context, MainActivity::class.java)
-                context.startActivity(intent)}){
-                Icon(Icons.Filled.LocationOn,
+            IconButton(onClick = {
+                val intent = Intent(context, MainActivity::class.java)
+                context.startActivity(intent)
+            }) {
+                Icon(
+                    Icons.Filled.LocationOn,
                     contentDescription = "Карта",
-                    tint = if (selected == 1) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium))
+                    tint = if (selected == 1) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium)
+                )
             }
             Spacer(Modifier.weight(1f, true))
-            IconButton(onClick = { val intent = Intent(context, AnalysisActivity::class.java)
-                context.startActivity(intent)}){
-                Icon(Icons.Filled.Info,
+            IconButton(onClick = {
+                val intent = Intent(context, AnalysisActivity::class.java)
+                context.startActivity(intent)
+            }) {
+                Icon(
+                    Icons.Filled.Info,
                     contentDescription = "Анализ",
-                    tint = if (selected == 2) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium))
+                    tint = if (selected == 2) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium)
+                )
             }
             Spacer(Modifier.weight(1f, true))
-            IconButton(onClick = { val intent = Intent(context, MyListActivity::class.java)
-                context.startActivity(intent)}){
-                Icon(Icons.Filled.List,
+            IconButton(onClick = {
+                val intent = Intent(context, MyListActivity::class.java)
+                context.startActivity(intent)
+            }) {
+                Icon(
+                    Icons.Filled.List,
                     contentDescription = "Мои отметки",
-                    tint = if (selected == 3) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium))
+                    tint = if (selected == 3) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium)
+                )
             }
             Spacer(Modifier.weight(1f, true))
-            IconButton(onClick = { val intent = Intent(context, ProfileActivity::class.java)
-                context.startActivity(intent)}){
-                Icon(Icons.Filled.AccountBox,
+            IconButton(onClick = {
+                val intent = Intent(context, ProfileActivity::class.java)
+                context.startActivity(intent)
+            }) {
+                Icon(
+                    Icons.Filled.AccountBox,
                     contentDescription = "Личный кабинет",
-                    tint = if (selected == 4) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium))
+                    tint = if (selected == 4) SkyBlue else LocalContentColor.current.copy(alpha = ContentAlpha.medium)
+                )
             }
         }
     }
@@ -129,7 +147,13 @@ fun MyMapView(context: Context) {
     ) {
         // Добавляем кнопку поверх карты
         FloatingActionButton(
-            onClick = { Toast.makeText(context, "Добавление опасности в разработке", Toast.LENGTH_SHORT).show() },
+            onClick = {
+                Toast.makeText(
+                    context,
+                    "Добавление опасности в разработке",
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
             backgroundColor = Blue,
             modifier = Modifier
                 .padding(16.dp)
