@@ -36,7 +36,7 @@ class AnalysisActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                     Column {
-                        TopBar("Анализ")
+                        TopBar("Анализ", false, onBackPressed = { onBackPressed() })
                         DropdownListWithDiagram()
                         Spacer(modifier = Modifier.height(56.dp))
                     }

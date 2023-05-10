@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     Column {
-                        TopBar("Карта")
+                        TopBar("Карта", false, onBackPressed = { onBackPressed() })
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -56,7 +56,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun TopBar(name: String) {
+fun TopBar(name: String, hasBackButton: Boolean, onBackPressed: () -> Unit) {
     TopAppBar(
         title = {
             Text(
@@ -67,8 +67,22 @@ fun TopBar(name: String) {
             )
         },
         backgroundColor = Blue,
+        navigationIcon = if (hasBackButton) {
+            {
+                IconButton(onClick = onBackPressed) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Назад",
+                        tint = White
+                    )
+                }
+            }
+        } else {
+            null
+        }
     )
 }
+
 
 @Composable
 fun NavigationBar(selected: Int, context: Context) {

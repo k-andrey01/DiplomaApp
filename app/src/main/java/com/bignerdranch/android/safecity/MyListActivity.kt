@@ -33,7 +33,7 @@ class MyListActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                     Column {
-                        TopBar("Анализ")
+                        TopBar("Мои отметки", false, onBackPressed = { onBackPressed() })
                         ScrollableList()
                         Spacer(modifier = Modifier.height(56.dp))
                     }

@@ -1,5 +1,7 @@
 package com.bignerdranch.android.safecity
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,13 +27,14 @@ class ProfileActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                     Column {
-                        TopBar("Анализ")
+                        TopBar("Профиль", false, onBackPressed = { onBackPressed() })
                         InfoWithButtons(
                             login = "danusup@gmail.com",
                             firstName = "Danil",
                             lastName = "Usupov",
                             gender = "Male",
-                            dateOfBirth = "16/12/2001"
+                            dateOfBirth = "16/12/2001",
+                            LocalContext.current
                         )
                         Spacer(modifier = Modifier.height(56.dp))
                     }
@@ -48,7 +51,8 @@ fun InfoWithButtons(
     firstName: String,
     lastName: String,
     gender: String,
-    dateOfBirth: String
+    dateOfBirth: String,
+    context: Context
 ) {
     UserInfoRow(
         login = login,
@@ -58,11 +62,11 @@ fun InfoWithButtons(
         dateOfBirth = dateOfBirth
     )
     Spacer(modifier = Modifier.height(65.dp))
-    Buttons()
+    Buttons(context)
 }
 
 @Composable
-fun Buttons() {
+fun Buttons(context: Context) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -71,14 +75,21 @@ fun Buttons() {
             onClick = { /*TODO*/ },
             modifier = Modifier
                 .padding(16.dp)
+                .fillMaxWidth()
+                .height(50.dp)
                 .align(alignment = CenterHorizontally)
         ) {
             Text("Изменить пароль")
         }
         Button(
-            onClick = { /*TODO*/ },
+            onClick = {
+                val intent = Intent(context, SendingMailActivity::class.java)
+                context.startActivity(intent)
+            },
             modifier = Modifier
                 .padding(16.dp)
+                .fillMaxWidth()
+                .height(50.dp)
                 .align(alignment = CenterHorizontally)
         ) {
             Text("Вопросы и предложения")
@@ -87,6 +98,8 @@ fun Buttons() {
             onClick = { /*TODO*/ },
             modifier = Modifier
                 .padding(16.dp)
+                .fillMaxWidth()
+                .height(50.dp)
                 .align(alignment = CenterHorizontally)
         ) {
             Text("Выйти")
