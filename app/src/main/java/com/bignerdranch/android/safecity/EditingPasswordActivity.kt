@@ -23,6 +23,10 @@ import androidx.compose.material.icons.filled.VisibilityOff
 
 class EditingPasswordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        var email = ""
+        if (!intent.getStringExtra("email").isNullOrEmpty()) {
+            email = intent.getStringExtra("email").toString()
+        }
         super.onCreate(savedInstanceState)
         setContent {
             SafeCityTheme {
@@ -37,7 +41,8 @@ class EditingPasswordActivity : ComponentActivity() {
                             resources.getString(R.string.mail_from),
                             resources.getString(R.string.mail_to),
                             resources.getString(R.string.password),
-                            resources.getString(R.string.theme_change_pass)
+                            resources.getString(R.string.theme_change_pass),
+                            email
                         )
                     }
                 }
@@ -52,13 +57,14 @@ fun PasswordResetScreen(
     mailFrom: String,
     mailTo: String,
     password: String,
-    theme: String
+    theme: String,
+    email: String
 ) {
     Column(
         modifier = Modifier.padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val email = remember { mutableStateOf("") }
+        val email = remember { mutableStateOf(email) }
         val code = remember { mutableStateOf("") }
         val newPassword = remember { mutableStateOf("") }
         val isCodeSent = remember { mutableStateOf(false) }

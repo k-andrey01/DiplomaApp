@@ -98,7 +98,10 @@ fun Buttons(context: Context) {
             Text("Вопросы и предложения")
         }
         Button(
-            onClick = { /*TODO*/ },
+            onClick = {
+                val intent = Intent(context, LoginActivity::class.java)
+                context.startActivity(intent)
+            },
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
