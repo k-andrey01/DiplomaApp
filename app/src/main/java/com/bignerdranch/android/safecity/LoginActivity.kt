@@ -136,8 +136,12 @@ fun EnterButton() {
 
 @Composable
 fun RegistrationButton() {
+    val context = LocalContext.current
     Button(
-        onClick = {/*TODO*/ },
+        onClick = {
+            val intent = Intent(context, RegistrationActivity::class.java)
+            context.startActivity(intent)
+        },
         modifier = Modifier
             .padding(16.dp)
             .fillMaxWidth()

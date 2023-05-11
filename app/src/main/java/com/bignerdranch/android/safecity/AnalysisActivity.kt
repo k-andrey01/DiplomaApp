@@ -63,10 +63,10 @@ fun DropdownList() {
     Box(modifier = Modifier
         .fillMaxWidth()
         .border(width = 1.dp, color = Color.Black)
-        .clickable(onClick = { expanded = true })
+        .clickable(onClick = { expanded = !expanded })
     ) {
         TextButton(
-            onClick = { expanded = true }
+            onClick = { expanded = !expanded }
         ) {
             Text(text = options[selectedOption])
         }
