@@ -72,7 +72,10 @@ fun Buttons(context: Context) {
             .fillMaxWidth()
     ) {
         Button(
-            onClick = { /*TODO*/ },
+            onClick = {
+                val intent = Intent(context, EditingPasswordActivity::class.java)
+                context.startActivity(intent)
+            },
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()

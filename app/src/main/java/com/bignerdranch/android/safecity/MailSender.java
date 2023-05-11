@@ -4,14 +4,15 @@ import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 import android.os.AsyncTask;
 
 public class MailSender {
 
-    public void sendMail(String text, String mailFrom, String mailTo, String password) {
-        new SendMailTask().execute(text, mailFrom, mailTo, password);
+    public void sendMail(String text, String mailFrom, String mailTo, String password, String theme) {
+        new SendMailTask().execute(text, mailFrom, mailTo, password, theme);
     }
 
     private class SendMailTask extends AsyncTask<String, Void, Void> {
@@ -22,6 +23,7 @@ public class MailSender {
             String mailFrom = params[1];
             String mailTo = params[2];
             String password = params[3];
+            String theme = params[4];
 
             Properties properties = new Properties();
             properties.put("mail.smtp.host", "smtp.rambler.ru");
@@ -38,12 +40,12 @@ public class MailSender {
                     });
             try {
                 MimeMessage messager = new MimeMessage(session);
-                messager.setFrom(new InternetAddress(mailFrom));
+                messager.setFrom(new InternetAddress(mailFrom, "SafeCity"));
                 messager.setRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(mailTo));
-                messager.setSubject("SafeCity вопросы и предложения");
+                messager.setSubject(theme);
                 messager.setText(text);
                 Transport.send(messager);
-            } catch (MessagingException mex) {
+            } catch (MessagingException | UnsupportedEncodingException mex) {
                 mex.printStackTrace();
             }
 

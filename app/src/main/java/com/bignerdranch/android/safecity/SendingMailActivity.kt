@@ -34,7 +34,7 @@ class SendingMailActivity : ComponentActivity() {
                     Column {
                         TopBar("Вопросы и предложения", true, onBackPressed = { onBackPressed() })
                         InputWithButtons(LocalContext.current, onBackPressed = { onBackPressed() }, resources.getString(R.string.mail_from),
-                            resources.getString(R.string.mail_to), resources.getString(R.string.password))
+                            resources.getString(R.string.mail_to), resources.getString(R.string.password), resources.getString(R.string.theme_ask))
                     }
                 }
             }
@@ -43,10 +43,10 @@ class SendingMailActivity : ComponentActivity() {
 }
 
 @Composable
-fun InputWithButtons(context: Context, onBackPressed: () -> Unit, mailFrom: String, mailTo: String, password: String) {
+fun InputWithButtons(context: Context, onBackPressed: () -> Unit, mailFrom: String, mailTo: String, password: String, theme: String) {
     val text = rememberSaveable { mutableStateOf("") }
     InputArea(text)
-    ButtonOnMailSending(context, onBackPressed = { onBackPressed() }, mailFrom, mailTo, password, text.value)
+    ButtonOnMailSending(context, onBackPressed = { onBackPressed() }, mailFrom, mailTo, password, theme, text.value)
 }
 
 @Composable
@@ -54,7 +54,7 @@ fun InputArea(text: MutableState<String>) {
     val textFieldColors = TextFieldDefaults.textFieldColors(
         backgroundColor = Color.White
     )
-    TextField(
+    OutlinedTextField(
         value = text.value,
         onValueChange = { text.value = it },
         label = { Text(text = "Ваше обращение") },
@@ -70,7 +70,7 @@ fun InputArea(text: MutableState<String>) {
 
 
 @Composable
-fun ButtonOnMailSending(context: Context, onBackPressed: () -> Unit, mailFrom: String, mailTo: String, password: String, message: String) {
+fun ButtonOnMailSending(context: Context, onBackPressed: () -> Unit, mailFrom: String, mailTo: String, password: String, theme: String, message: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -78,8 +78,7 @@ fun ButtonOnMailSending(context: Context, onBackPressed: () -> Unit, mailFrom: S
         Button(
             onClick = {
                 val mailSender = MailSender()
-                println(message)
-                mailSender.sendMail(message, mailFrom, mailTo, password)
+                mailSender.sendMail(message, mailFrom, mailTo, password, theme)
                 Toast.makeText(
                     context,
                     "Обращение успешно отправлено",
