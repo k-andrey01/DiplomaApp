@@ -162,11 +162,8 @@ fun MyMapView(context: Context) {
         // Добавляем кнопку поверх карты
         FloatingActionButton(
             onClick = {
-                Toast.makeText(
-                    context,
-                    "Добавление опасности в разработке",
-                    Toast.LENGTH_SHORT
-                ).show()
+                val intent = Intent(context, AddingCrimeActivity()::class.java)
+                context.startActivity(intent)
             },
             backgroundColor = Blue,
             modifier = Modifier
