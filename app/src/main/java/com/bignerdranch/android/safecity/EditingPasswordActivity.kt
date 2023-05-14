@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import com.bignerdranch.android.safecity.HelperClass.MailSender
 
 class EditingPasswordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,7 +108,8 @@ fun SendCodeButton(
         onClick = {
             // Отправить код на указанный email
             // Здесь можно добавить логику для отправки кода на email
-            val mailSender = MailSender()
+            val mailSender =
+                MailSender()
             mailSender.sendMail("тут код", mailFrom, mailTo, password, theme)
             Toast.makeText(context, "Код отправлен на указанный email", Toast.LENGTH_SHORT).show()
             onCodeSent()

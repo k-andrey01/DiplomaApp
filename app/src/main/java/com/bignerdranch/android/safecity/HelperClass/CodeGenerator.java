@@ -1,4 +1,4 @@
-package com.bignerdranch.android.safecity;
+package com.bignerdranch.android.safecity.HelperClass;
 
 import java.util.Random;
 

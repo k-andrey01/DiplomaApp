@@ -19,8 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.bignerdranch.android.safecity.HelperClass.MailSender
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
-import com.bignerdranch.android.safecity.ui.theme.White
 
 class SendingMailActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,7 +77,8 @@ fun ButtonOnMailSending(context: Context, onBackPressed: () -> Unit, mailFrom: S
     ) {
         Button(
             onClick = {
-                val mailSender = MailSender()
+                val mailSender =
+                    MailSender()
                 mailSender.sendMail(message, mailFrom, mailTo, password, theme)
                 Toast.makeText(
                     context,

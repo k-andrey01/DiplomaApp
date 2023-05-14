@@ -1,4 +1,4 @@
-package com.bignerdranch.android.safecity;
+package com.bignerdranch.android.safecity.HelperClass;
 
 public enum Gender {
     Мужской,

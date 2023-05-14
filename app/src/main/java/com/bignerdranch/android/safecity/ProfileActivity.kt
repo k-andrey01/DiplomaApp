@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.bignerdranch.android.safecity.HelperClass.AuthManager
 import com.bignerdranch.android.safecity.ui.theme.Blue
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import com.bignerdranch.android.safecity.ui.theme.SkyBlue
@@ -99,6 +100,7 @@ fun Buttons(context: Context) {
         }
         Button(
             onClick = {
+                AuthManager.logout()
                 val intent = Intent(context, LoginActivity::class.java)
                 context.startActivity(intent)
             },

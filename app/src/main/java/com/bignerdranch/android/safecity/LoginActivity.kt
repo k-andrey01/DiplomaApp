@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.bignerdranch.android.safecity.HelperClass.AuthManager
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 
 class LoginActivity : ComponentActivity() {
@@ -122,6 +123,7 @@ fun EnterButton() {
     val context = LocalContext.current
     Button(
         onClick = {
+            AuthManager.login()
             val intent = Intent(context, MainActivity::class.java)
             context.startActivity(intent)
         },
