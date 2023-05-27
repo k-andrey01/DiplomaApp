@@ -1,7 +1,10 @@
 package com.bignerdranch.android.safecity
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -28,7 +31,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.bignerdranch.android.safecity.HelperClass.AuthManager
+import com.bignerdranch.android.safecity.Managers.StringApiManager
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,7 +70,7 @@ fun LoginScreen() {
         EmailInput(email = email)
         PasswordInput(password = password)
 
-        EnterButton()
+        EnterButton(email, password)
         RegistrationButton()
         Text(
             text = buildAnnotatedString {
@@ -128,13 +136,15 @@ private fun getVisibilityIcon(passwordVisible: Boolean): ImageVector {
 }
 
 @Composable
-fun EnterButton() {
+fun EnterButton(email: MutableState<String>, password: MutableState<String>) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
     Button(
         onClick = {
-            AuthManager.login()
-            val intent = Intent(context, MainActivity::class.java)
-            context.startActivity(intent)
+            coroutineScope.launch {
+                handleLogin(email.value, password.value, context)
+            }
         },
         modifier = Modifier
             .padding(16.dp)
@@ -144,7 +154,6 @@ fun EnterButton() {
         Text("Войти")
     }
 }
-
 @Composable
 fun RegistrationButton() {
     val context = LocalContext.current
@@ -159,5 +168,33 @@ fun RegistrationButton() {
             .height(50.dp)
     ) {
         Text("Регистрация")
+    }
+}
+
+@SuppressLint("CoroutineCreationDuringComposition")
+fun handleLogin(login: String, password: String, context: Context) {
+    CoroutineScope(Dispatchers.IO).launch {
+        var message: String = ""
+        try {
+            val response = StringApiManager.userApiService.login(login = login, password = password)
+            message = response
+            if (message == "Аутентификация успешна") {
+                // Аутентификация успешна, выполните необходимые действия
+                withContext(Dispatchers.Main) {
+                    val intent = Intent(context, MainActivity::class.java)
+                    context.startActivity(intent)
+                }
+            }
+        } catch (e: Exception) {
+            message = "Error"
+        } finally {
+            CoroutineScope(Dispatchers.Main).launch {
+                Toast.makeText(
+                    context,
+                    message,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 }

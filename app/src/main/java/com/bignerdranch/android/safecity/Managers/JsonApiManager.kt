@@ -1,8 +1,11 @@
+package com.bignerdranch.android.safecity.Managers
+
 import com.bignerdranch.android.safecity.ApiInterfaces.UserApiService
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 
-object ApiManager {
+object JsonApiManager {
     lateinit var baseUrl: String
     private lateinit var retrofit: Retrofit
 
@@ -10,7 +13,7 @@ object ApiManager {
         this.baseUrl = baseUrl
         retrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
-            .addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 

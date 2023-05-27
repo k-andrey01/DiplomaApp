@@ -3,7 +3,6 @@ package com.bignerdranch.android.safecity
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,8 +26,8 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.bignerdranch.android.safecity.DataClasses.User
 import com.bignerdranch.android.safecity.HelperClass.Gender
+import com.bignerdranch.android.safecity.Managers.StringApiManager
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -278,7 +277,7 @@ fun RegisterButton(
                 CoroutineScope(Dispatchers.IO).launch {
                     var message = ""
                     try {
-                        val response = ApiManager.userApiService.addUser(
+                        val response = StringApiManager.userApiService.addUser(
                             login = email.value.trim(),
                             password = password.value.trim(),
                             name = name.value.trim(),
