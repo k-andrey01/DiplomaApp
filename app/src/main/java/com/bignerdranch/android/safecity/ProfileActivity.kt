@@ -13,10 +13,13 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.bignerdranch.android.safecity.DataClasses.User
 import com.bignerdranch.android.safecity.HelperClass.AuthManager
+import com.bignerdranch.android.safecity.Managers.JsonApiManager.userApiService
 import com.bignerdranch.android.safecity.ui.theme.Blue
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import com.bignerdranch.android.safecity.ui.theme.SkyBlue
+import kotlinx.coroutines.runBlocking
 
 class ProfileActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,13 +32,16 @@ class ProfileActivity : ComponentActivity() {
                 ) {
                     Column {
                         TopBar("Профиль", false, onBackPressed = { onBackPressed() })
+                        val userData: User = runBlocking {
+                            userApiService.getUserData(login = AuthManager.getUsername())
+                        }
                         InfoWithButtons(
-                            login = "danusup@gmail.com",
-                            firstName = "Danil",
-                            lastName = "Usupov",
-                            gender = "Male",
-                            dateOfBirth = "16/12/2001",
-                            LocalContext.current
+                            login = userData.login,
+                            firstName = userData.name,
+                            lastName = userData.surname,
+                            gender = userData.gender,
+                            dateOfBirth = userData.birthdate.toString(),
+                            context = LocalContext.current
                         )
                         Spacer(modifier = Modifier.height(56.dp))
                     }

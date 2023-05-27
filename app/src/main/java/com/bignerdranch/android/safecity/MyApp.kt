@@ -3,6 +3,7 @@ package com.bignerdranch.android.safecity
 import android.app.Application
 import android.content.Intent
 import com.bignerdranch.android.safecity.HelperClass.AuthManager
+import com.bignerdranch.android.safecity.Managers.JsonApiManager
 import com.bignerdranch.android.safecity.Managers.StringApiManager
 import com.yandex.mapkit.MapKitFactory
 
@@ -16,6 +17,7 @@ class MyApp : Application() {
         super.onCreate()
 
         StringApiManager.initialize(resources.getString(R.string.api_address))
+        JsonApiManager.initialize(resources.getString(R.string.api_address))
 
         apiKey = resources.getString(R.string.api_key)
         MapKitFactory.setApiKey(apiKey)

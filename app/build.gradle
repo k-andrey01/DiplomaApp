@@ -57,6 +57,7 @@ dependencies {
     implementation 'com.yandex.android:maps.mobile:4.3.1-full'
     implementation "androidx.compose.material:material-icons-core:$compose_version"
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
 //    implementation "javax.mail:mail:1.4.7"
     implementation("com.sun.mail:android-mail:1.6.7")
     implementation("com.sun.mail:android-activation:1.6.7")

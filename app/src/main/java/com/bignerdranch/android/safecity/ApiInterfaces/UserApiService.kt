@@ -9,8 +9,8 @@ import java.time.LocalDate
 import java.util.*
 
 interface UserApiService {
-    @GET("/user/all")
-    suspend fun getUsers(): List<User>
+    @GET("/user/selectByLogin")
+    suspend fun getUserData(@Query("login") login: String): User
 
     @POST("/user/login")
     suspend fun login(
