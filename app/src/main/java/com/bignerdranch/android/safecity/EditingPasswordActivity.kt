@@ -1,7 +1,9 @@
 package com.bignerdranch.android.safecity
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,15 +28,24 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import com.bignerdranch.android.safecity.HelperClass.AuthManager
+import com.bignerdranch.android.safecity.HelperClass.CodeGenerator
 import com.bignerdranch.android.safecity.HelperClass.MailSender
+import com.bignerdranch.android.safecity.Managers.StringApiManager
+import com.bignerdranch.android.safecity.Managers.StringApiManager.userApiService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class EditingPasswordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        var email = ""
-        if (!intent.getStringExtra("email").isNullOrEmpty()) {
-            email = intent.getStringExtra("email").toString()
-        }
         super.onCreate(savedInstanceState)
+        var mail = ""
+        if (AuthManager.isLoggedIn()){
+            mail = AuthManager.getUsername()
+        }
+
         setContent {
             SafeCityTheme {
                 Surface(
@@ -46,10 +57,9 @@ class EditingPasswordActivity : ComponentActivity() {
                         PasswordResetScreen(
                             onBackPressed = { onBackPressed() },
                             resources.getString(R.string.mail_from),
-                            resources.getString(R.string.mail_to),
                             resources.getString(R.string.password),
                             resources.getString(R.string.theme_change_pass),
-                            email
+                            mail
                         )
                     }
                 }
@@ -62,7 +72,6 @@ class EditingPasswordActivity : ComponentActivity() {
 fun PasswordResetScreen(
     onBackPressed: () -> Unit,
     mailFrom: String,
-    mailTo: String,
     password: String,
     theme: String,
     email: String
@@ -72,6 +81,7 @@ fun PasswordResetScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val email = remember { mutableStateOf(email) }
+        val confirmCode = remember { mutableStateOf("") }
         val code = remember { mutableStateOf("") }
         val newPassword = remember { mutableStateOf("") }
         val isCodeSent = remember { mutableStateOf(false) }
@@ -81,9 +91,9 @@ fun PasswordResetScreen(
             email = email,
             onCodeSent = { isCodeSent.value = true },
             mailFrom,
-            mailTo,
             password,
-            theme
+            theme,
+            confirmCode
         )
 
         if (isCodeSent.value) {
@@ -91,7 +101,9 @@ fun PasswordResetScreen(
             CodeInput(code = code)
             NewPasswordInput(newPassword = newPassword)
             ChangePasswordButton(
+                email = email,
                 code = code,
+                confirmCode = confirmCode,
                 newPassword = newPassword
             )
         }
@@ -105,18 +117,18 @@ fun SendCodeButton(
     email: MutableState<String>,
     onCodeSent: () -> Unit,
     mailFrom: String,
-    mailTo: String,
     password: String,
-    theme: String
+    theme: String,
+    confirmCode: MutableState<String>
 ) {
     val context = LocalContext.current
+    val codeGenerator = CodeGenerator()
+    val mailSender = MailSender()
+
     Button(
         onClick = {
-            // Отправить код на указанный email
-            // Здесь можно добавить логику для отправки кода на email
-            val mailSender =
-                MailSender()
-            mailSender.sendMail("тут код", mailFrom, mailTo, password, theme)
+            confirmCode.value = codeGenerator.generateRandomNumber()
+            mailSender.sendMail(confirmCode.value, mailFrom, email.value, password, theme)
             Toast.makeText(context, "Код отправлен на указанный email", Toast.LENGTH_SHORT).show()
             onCodeSent()
         },
@@ -154,6 +166,8 @@ fun EmailInput(email: MutableState<String>) {
 
 @Composable
 fun CodeInput(code: MutableState<String>) {
+    val focusManager = LocalFocusManager.current
+
     OutlinedTextField(
         value = code.value,
         onValueChange = { code.value = it },
@@ -163,13 +177,18 @@ fun CodeInput(code: MutableState<String>) {
             .padding(16.dp)
             .fillMaxWidth()
             .height(75.dp),
-        singleLine = true
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
     )
 }
 
 @Composable
 fun NewPasswordInput(newPassword: MutableState<String>) {
     var passwordVisible by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
     OutlinedTextField(
         value = newPassword.value,
@@ -191,7 +210,11 @@ fun NewPasswordInput(newPassword: MutableState<String>) {
                     contentDescription = "Password Visibility Icon"
                 )
             }
-        }
+        },
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
     )
 }
 
@@ -204,15 +227,50 @@ private fun getVisibilityIcon(passwordVisible: Boolean): ImageVector {
 }
 
 @Composable
-fun ChangePasswordButton(code: MutableState<String>, newPassword: MutableState<String>) {
+fun ChangePasswordButton(
+    email: MutableState<String>,
+    code: MutableState<String>,
+    confirmCode: MutableState<String>,
+    newPassword: MutableState<String>
+) {
     val context = LocalContext.current
+
     Button(
         onClick = {
-            // Сменить пароль с использованием полученного кода и нового пароля
-            // Здесь можно добавить логику для смены пароля
-            Toast.makeText(context, "Пароль успешно изменён", Toast.LENGTH_SHORT).show()
-            val intent = Intent(context, ProfileActivity::class.java)
-            context.startActivity(intent)
+            if (code.value == confirmCode.value) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    var message = ""
+                    try {
+                        val response = StringApiManager.userApiService.updatePassword(
+                            login = email.value,
+                            password = newPassword.value
+                        )
+                        message = response
+                        if (message == "Пароль обновлён") {
+                            CoroutineScope(Dispatchers.Main).launch {
+                                (context as? Activity)?.finish()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        message = "Непредвиденная ошибка"
+                        Log.d("D","Error ${e.message}")
+                    } finally {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            Toast.makeText(
+                                context,
+                                message,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+            } else {
+                Toast.makeText(
+                    context,
+                    "Введен неверный код подтверждения",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         },
         modifier = Modifier
             .padding(16.dp)
