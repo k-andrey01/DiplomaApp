@@ -54,6 +54,7 @@ class LoginActivity : ComponentActivity() {
                 }
             }
         }
+        AuthManager.init(this)
     }
 }
 
@@ -179,8 +180,8 @@ fun handleLogin(login: String, password: String, context: Context) {
             val response = StringApiManager.userApiService.login(login = login, password = password)
             message = response
             if (message == "Аутентификация успешна") {
-                // Аутентификация успешна, выполните необходимые действия
                 withContext(Dispatchers.Main) {
+                    AuthManager.login(login)
                     val intent = Intent(context, MainActivity::class.java)
                     context.startActivity(intent)
                 }
