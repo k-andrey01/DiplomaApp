@@ -61,6 +61,9 @@ dependencies {
     implementation("com.sun.mail:android-mail:1.6.7")
     implementation("com.sun.mail:android-activation:1.6.7")
     implementation('io.github.bytebeats:compose-charts:0.1.2')
+    implementation "com.squareup.retrofit2:retrofit:2.9.0"
+    implementation "com.squareup.retrofit2:converter-gson:2.9.0"
+    implementation 'com.squareup.retrofit2:converter-scalars:2.9.0'
 //    implementation 'com.yandex.android:mapkit:4.0.0'
 //    implementation 'com.yandex.android:search:1.1.0'
     testImplementation 'junit:junit:4.13.2'

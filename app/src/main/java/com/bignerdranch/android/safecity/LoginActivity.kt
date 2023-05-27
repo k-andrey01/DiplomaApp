@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -16,8 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
@@ -85,6 +89,7 @@ fun LoginScreen() {
 @Composable
 fun PasswordInput(password: MutableState<String>) {
     var passwordVisible by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
     OutlinedTextField(
         value = password.value,
@@ -95,6 +100,10 @@ fun PasswordInput(password: MutableState<String>) {
             .padding(16.dp)
             .fillMaxWidth()
             .height(75.dp),
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
         singleLine = true,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = {

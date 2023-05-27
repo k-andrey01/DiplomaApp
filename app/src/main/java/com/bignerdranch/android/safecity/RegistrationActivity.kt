@@ -3,11 +3,15 @@ package com.bignerdranch.android.safecity
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -17,11 +21,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.bignerdranch.android.safecity.DataClasses.User
 import com.bignerdranch.android.safecity.HelperClass.Gender
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -74,7 +85,7 @@ fun RegistrationScreen(onBackPressed: () -> Unit) {
             }
         )
 
-        RegisterButton()
+        RegisterButton(email, password, passwordConfirm, name, surname, birthday, selectedGender)
         BackButton(onBackPressed)
     }
 }
@@ -82,6 +93,7 @@ fun RegistrationScreen(onBackPressed: () -> Unit) {
 @Composable
 fun PasswordConfirm(password: MutableState<String>) {
     var passwordVisible by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
     OutlinedTextField(
         value = password.value,
@@ -92,6 +104,10 @@ fun PasswordConfirm(password: MutableState<String>) {
             .padding(16.dp)
             .fillMaxWidth()
             .height(75.dp),
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
         singleLine = true,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = {
@@ -117,6 +133,8 @@ private fun getVisibilityIcon(passwordVisible: Boolean): ImageVector {
 
 @Composable
 fun AnyInput(label: String, placeholder: String, text: MutableState<String>) {
+    val focusManager = LocalFocusManager.current
+
     OutlinedTextField(
         value = text.value,
         onValueChange = { text.value = it },
@@ -126,7 +144,12 @@ fun AnyInput(label: String, placeholder: String, text: MutableState<String>) {
             .padding(8.dp)
             .fillMaxWidth()
             .height(75.dp),
-        singleLine = true
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.Sentences,
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
     )
 }
 
@@ -239,12 +262,56 @@ fun GenderDropdown(
 }
 
 @Composable
-fun RegisterButton() {
+fun RegisterButton(
+    email: MutableState<String>,
+    password: MutableState<String>,
+    passwordConfirm: MutableState<String>,
+    name: MutableState<String>,
+    surname: MutableState<String>,
+    birthday: MutableState<LocalDate>,
+    selectedGender: MutableState<Gender>
+) {
     val context = LocalContext.current
     Button(
         onClick = {
-            val intent = Intent(context, LoginActivity::class.java)
-            context.startActivity(intent)
+            if (password.value == passwordConfirm.value) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    var message = ""
+                    try {
+                        val response = ApiManager.userApiService.addUser(
+                            login = email.value.trim(),
+                            password = password.value.trim(),
+                            name = name.value.trim(),
+                            surname = surname.value.trim(),
+                            birthdate = birthday.value,
+                            gender = selectedGender.value.name
+                        )
+                        message = response
+                        if (message == "Зарегистрирован") {
+                            CoroutineScope(Dispatchers.Main).launch {
+                                val intent = Intent(context, LoginActivity::class.java)
+                                context.startActivity(intent)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        message = "Непредвиденная ошибка"
+                    } finally {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            Toast.makeText(
+                                context,
+                                message,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+            } else {
+                Toast.makeText(
+                    context,
+                    "Пароли не совпадают",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         },
         modifier = Modifier
             .padding(8.dp)

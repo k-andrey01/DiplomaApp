@@ -2,6 +2,12 @@ package com.bignerdranch.android.safecity
 
 import android.app.Application
 import android.content.Intent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import com.bignerdranch.android.safecity.HelperClass.AuthManager
 import com.yandex.mapkit.MapKitFactory
 import java.io.InputStream
@@ -15,6 +21,8 @@ class MyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        ApiManager.initialize(resources.getString(R.string.api_address))
 
         apiKey = resources.getString(R.string.api_key)
         MapKitFactory.setApiKey(apiKey)

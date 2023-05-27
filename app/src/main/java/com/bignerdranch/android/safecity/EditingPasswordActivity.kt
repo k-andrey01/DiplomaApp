@@ -6,6 +6,8 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -20,6 +22,10 @@ import androidx.compose.ui.unit.dp
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import com.bignerdranch.android.safecity.HelperClass.MailSender
 
 class EditingPasswordActivity : ComponentActivity() {
@@ -126,6 +132,8 @@ fun SendCodeButton(
 
 @Composable
 fun EmailInput(email: MutableState<String>) {
+    val focusManager = LocalFocusManager.current
+
     OutlinedTextField(
         value = email.value,
         leadingIcon = { Icon(imageVector = Icons.Default.Email, contentDescription = "emailIcon") },
@@ -135,7 +143,12 @@ fun EmailInput(email: MutableState<String>) {
             .padding(16.dp)
             .fillMaxWidth()
             .height(75.dp),
-        singleLine = true
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Email,
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
     )
 }
 
