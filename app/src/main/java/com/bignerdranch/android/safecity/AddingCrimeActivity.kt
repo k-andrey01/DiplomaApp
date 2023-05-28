@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
@@ -24,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.bignerdranch.android.safecity.HelperClass.Gender
+import com.bignerdranch.android.safecity.Managers.JsonApiManager
 import com.bignerdranch.android.safecity.ui.theme.Grey
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import java.time.LocalDate
@@ -330,7 +332,25 @@ fun TypeDropdown(
     onTypeSelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val typeValues = listOf("Option 1", "Option 2", "Option 3")
+    var typeValues by remember { mutableStateOf(emptyList<String>()) }
+    val context = LocalContext.current
+
+    suspend fun fetchTypeList() {
+        try {
+            val types = JsonApiManager.typeApiService.getAllTypeNames()
+            typeValues = types
+        } catch (e: Exception) {
+            Toast.makeText(
+                context,
+                "Не удалось получить типы опасностей",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        fetchTypeList()
+    }
 
     Row(
         modifier = Modifier

@@ -1,5 +1,6 @@
 package com.bignerdranch.android.safecity.Managers
 
+import com.bignerdranch.android.safecity.ApiInterfaces.TypeApiService
 import com.bignerdranch.android.safecity.ApiInterfaces.UserApiService
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
@@ -30,6 +31,8 @@ object JsonApiManager {
 
     val userApiService: UserApiService
         get() = retrofit.create(UserApiService::class.java)
+    val typeApiService: TypeApiService
+        get() = retrofit.create(TypeApiService::class.java)
 
     private class LocalDateDeserializer : JsonDeserializer<LocalDate> {
         private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
