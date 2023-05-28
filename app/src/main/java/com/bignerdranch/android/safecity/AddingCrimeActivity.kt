@@ -1,8 +1,15 @@
 package com.bignerdranch.android.safecity
 
+import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Geocoder
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -10,6 +17,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -22,15 +30,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.bignerdranch.android.safecity.HelperClass.Gender
 import com.bignerdranch.android.safecity.Managers.JsonApiManager
 import com.bignerdranch.android.safecity.ui.theme.Grey
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 class AddingCrimeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,19 +101,124 @@ fun AddingDangerScreen(onBackPressed: () -> Unit) {
 }
 
 @Composable
-fun AddressBox(coordX: MutableState<String>, coordY: MutableState<String>, city: MutableState<String>,
-               street: MutableState<String>, house: MutableState<String>) {
+fun AddressBox(
+    coordX: MutableState<String>,
+    coordY: MutableState<String>,
+    city: MutableState<String>,
+    street: MutableState<String>,
+    house: MutableState<String>
+) {
+    val context = LocalContext.current
+    val isLoading = remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        val locationManager =
+            context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        val hasLocationPermission =
+            context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) ==
+                    PackageManager.PERMISSION_GRANTED
+
+        if (hasLocationPermission) {
+            val locationListener = object : LocationListener {
+                override fun onLocationChanged(location: Location) {
+                    if (!city.value.isNotBlank() && !street.value.isNotBlank() && !house.value.isNotBlank()) {
+                        coordX.value = location.latitude.toString()
+                        coordY.value = location.longitude.toString()
+
+                        GlobalScope.launch(Dispatchers.IO) {
+                            val geocoder = Geocoder(context, Locale.getDefault())
+                            val addresses = geocoder.getFromLocation(
+                                location.latitude,
+                                location.longitude,
+                                1
+                            )
+                            if (addresses != null && addresses.isNotEmpty()) {
+                                val address = addresses[0]
+                                withContext(Dispatchers.Main) {
+                                    if (!city.value.isNotBlank()) {
+                                        city.value = address.locality ?: ""
+                                    }
+                                    if (!street.value.isNotBlank()) {
+                                        street.value = address.thoroughfare ?: ""
+                                    }
+                                    if (!house.value.isNotBlank()) {
+                                        house.value = address.subThoroughfare ?: ""
+                                    }
+                                }
+                            }
+                            isLoading.value = false
+                        }
+                    }
+                }
+
+                override fun onProviderDisabled(provider: String) {}
+                override fun onProviderEnabled(provider: String) {}
+                override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+            }
+
+            try {
+                locationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER,
+                    0L,
+                    0f,
+                    locationListener
+                )
+            } catch (e: SecurityException) {
+                Toast.makeText(
+                    context,
+                    e.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        } else {
+            Toast.makeText(
+                context,
+                "Не удалось определить местоположение",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
     Column(modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 16.dp)) {
         Text(text = "Адрес происшествия")
         Box(modifier = Modifier.border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))) {
-            Column() {
-                Row(Modifier.fillMaxWidth()) {
-                    CoordInput(label = "Широта", placeholder = "Широта", text = coordX, Modifier.weight(1f))
-                    CoordInput(label = "Долгота", placeholder = "Долгота", text = coordY, Modifier.weight(1f))
+            if (isLoading.value) {
+                // Отображаем индикатор ожидания
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else {
+                Column() {
+                    Row(Modifier.fillMaxWidth()) {
+                        CoordInput(label = "Широта", placeholder = "Широта", text = coordX, Modifier.weight(1f))
+                        CoordInput(label = "Долгота", placeholder = "Долгота", text = coordY, Modifier.weight(1f))
+                    }
+                    AnyInput(label = "Город", placeholder = "Введите город", text = city)
+                    AnyInput(label = "Улица", placeholder = "Введите улицу", text = street)
+                    AnyInput(label = "Дом", placeholder = "Введите дом", text = house)
+                    Button(
+                        onClick = {
+                            updateCoordinates(context, city.value, street.value, house.value, coordX, coordY)
+                        },
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    ) {
+                        Text("Обновить координаты")
+                    }
                 }
-                AnyInput(label = "Город", placeholder = "Введите город", text = city)
-                AnyInput(label = "Улица", placeholder = "Введите улицу", text = street)
-                AnyInput(label = "Дом", placeholder = "Введите дом", text = house)
+            }
+        }
+    }
+}
+
+fun updateCoordinates(context: Context, city: String, street: String, house: String, coordX: MutableState<String>, coordY: MutableState<String>) {
+    GlobalScope.launch(Dispatchers.IO) {
+        val geocoder = Geocoder(context, Locale.getDefault())
+        val address = "$house, $street, $city"
+        val addresses = geocoder.getFromLocationName(address, 1)
+        if (addresses != null && addresses.isNotEmpty()) {
+            val location = addresses[0]
+            withContext(Dispatchers.Main) {
+                coordX.value = location.latitude.toString()
+                coordY.value = location.longitude.toString()
             }
         }
     }
@@ -234,7 +356,8 @@ fun CoordInput(label: String, placeholder: String, text: MutableState<String>, m
             .padding(8.dp)
             .height(60.dp)
             .fillMaxWidth(),
-        singleLine = true
+        singleLine = true,
+        enabled = false
     )
 }
 
@@ -249,7 +372,7 @@ fun DangerBox(comment: MutableState<String>, type: MutableState<String>, dateOfD
                     selectedType = type,
                     onTypeSelected = { nowType -> type.value = nowType })
                 DateTimeInput(selectedDateTime = dateOfDanger, label = "Время происшествия")
-                DateTimeInput(selectedDateTime = dateOfInfo, label = "Время записи")
+                DateTimeInput(selectedDateTime = dateOfInfo, label = "Время записи", isMutable = false)
                 InputCommentArea(text = comment)
             }
         }
@@ -257,7 +380,11 @@ fun DangerBox(comment: MutableState<String>, type: MutableState<String>, dateOfD
 }
 
 @Composable
-fun DateTimeInput(selectedDateTime: MutableState<LocalDateTime>, label: String) {
+fun DateTimeInput(
+    selectedDateTime: MutableState<LocalDateTime>,
+    label: String,
+    isMutable: Boolean = true
+) {
     val context = LocalContext.current
 
     val datePickerDialog = remember { DatePickerDialog(context) }
@@ -283,18 +410,20 @@ fun DateTimeInput(selectedDateTime: MutableState<LocalDateTime>, label: String) 
             .padding(8.dp)
             .fillMaxWidth()
             .clickable {
-                datePickerDialog.setOnDateSetListener { _, year, monthOfYear, dayOfMonth ->
-                    val currentDateTime = selectedDateTime.value
-                    val newDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth)
-                    val newDateTime = currentDateTime
-                        .withYear(year)
-                        .withMonth(monthOfYear + 1)
-                        .withDayOfMonth(dayOfMonth)
-                    selectedDateTime.value = newDateTime
-                    timePickerDialog.updateTime(newDateTime.hour, newDateTime.minute)
-                    timePickerDialog.show()
+                if (isMutable) {
+                    datePickerDialog.setOnDateSetListener { _, year, monthOfYear, dayOfMonth ->
+                        val currentDateTime = selectedDateTime.value
+                        val newDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth)
+                        val newDateTime = currentDateTime
+                            .withYear(year)
+                            .withMonth(monthOfYear + 1)
+                            .withDayOfMonth(dayOfMonth)
+                        selectedDateTime.value = newDateTime
+                        timePickerDialog.updateTime(newDateTime.hour, newDateTime.minute)
+                        timePickerDialog.show()
+                    }
+                    datePickerDialog.show()
                 }
-                datePickerDialog.show()
             }
             .border(
                 width = 1.dp,
@@ -324,7 +453,6 @@ fun DateTimeInput(selectedDateTime: MutableState<LocalDateTime>, label: String) 
         }
     }
 }
-
 
 @Composable
 fun TypeDropdown(
@@ -415,7 +543,7 @@ fun InputCommentArea(text: MutableState<String>) {
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(max = 100.dp)
-            .padding(16.dp)
+            .padding(8.dp)
             .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(8.dp)),
         colors = textFieldColors
     )
