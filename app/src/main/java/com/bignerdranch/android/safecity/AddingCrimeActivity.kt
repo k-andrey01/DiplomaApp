@@ -17,7 +17,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -30,20 +29,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.bignerdranch.android.safecity.HelperClass.Gender
-import com.bignerdranch.android.safecity.Managers.JsonApiManager
+import com.bignerdranch.android.safecity.Managers.GsonApiManager
+import com.bignerdranch.android.safecity.Managers.ScalarsApiManager
 import com.bignerdranch.android.safecity.ui.theme.Grey
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.IOException
+import kotlinx.coroutines.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -95,7 +88,7 @@ fun AddingDangerScreen(onBackPressed: () -> Unit) {
             dateOfInfo = dateOfInfo
         )
         VictimsBox(victims)
-        AddButton()
+        AddButton(city, street, city, coordX, coordY)
         BackButton(onBackPressed)
     }
 }
@@ -465,7 +458,7 @@ fun TypeDropdown(
 
     suspend fun fetchTypeList() {
         try {
-            val types = JsonApiManager.typeApiService.getAllTypeNames()
+            val types = GsonApiManager.typeApiService.getAllTypeNames()
             typeValues = types
         } catch (e: Exception) {
             Toast.makeText(
@@ -550,12 +543,45 @@ fun InputCommentArea(text: MutableState<String>) {
 }
 
 @Composable
-fun AddButton() {
+fun AddButton(city: MutableState<String>, street: MutableState<String>, house: MutableState<String>,
+              coordX: MutableState<String>, coordY: MutableState<String>) {
     val context = LocalContext.current
+
     Button(
         onClick = {
-            val intent = Intent(context, MainActivity::class.java)
-            context.startActivity(intent)
+            var addressId: Int
+            CoroutineScope(Dispatchers.IO).launch {
+                var message = -1
+                var answer = ""
+                try {
+                    val response = ScalarsApiManager.addressApiService.addAddress(
+                        city = city.value,
+                        street = street.value,
+                        houseNumber = house.value,
+                        coordX = coordX.value.toDouble(),
+                        coordY = coordY.value.toDouble()
+                    )
+                    message = response
+                    if (message > -1) {
+                        addressId = message
+                        answer = "Успешно добавлен адрес с id = ${addressId}"
+                        CoroutineScope(Dispatchers.Main).launch {
+                            val intent = Intent(context, MainActivity::class.java)
+                            context.startActivity(intent)
+                        }
+                    }
+                } catch (e: Exception) {
+                    answer = "Ошибка добавления"
+                } finally {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        Toast.makeText(
+                            context,
+                            answer,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
         },
         modifier = Modifier
             .padding(8.dp)

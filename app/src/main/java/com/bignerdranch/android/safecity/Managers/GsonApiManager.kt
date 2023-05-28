@@ -12,7 +12,7 @@ import java.lang.reflect.Type
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-object JsonApiManager {
+object GsonApiManager {
     lateinit var baseUrl: String
     private lateinit var retrofit: Retrofit
 

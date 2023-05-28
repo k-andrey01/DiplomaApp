@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.bignerdranch.android.safecity.DataClasses.User
 import com.bignerdranch.android.safecity.HelperClass.AuthManager
-import com.bignerdranch.android.safecity.Managers.JsonApiManager.userApiService
+import com.bignerdranch.android.safecity.Managers.GsonApiManager.userApiService
 import com.bignerdranch.android.safecity.ui.theme.Blue
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import com.bignerdranch.android.safecity.ui.theme.SkyBlue

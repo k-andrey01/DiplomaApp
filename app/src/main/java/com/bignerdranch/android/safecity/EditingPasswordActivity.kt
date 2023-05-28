@@ -1,7 +1,6 @@
 package com.bignerdranch.android.safecity
 
 import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -25,18 +24,15 @@ import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import com.bignerdranch.android.safecity.HelperClass.AuthManager
 import com.bignerdranch.android.safecity.HelperClass.CodeGenerator
 import com.bignerdranch.android.safecity.HelperClass.MailSender
-import com.bignerdranch.android.safecity.Managers.StringApiManager
-import com.bignerdranch.android.safecity.Managers.StringApiManager.userApiService
+import com.bignerdranch.android.safecity.Managers.ScalarsApiManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class EditingPasswordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -241,7 +237,7 @@ fun ChangePasswordButton(
                 CoroutineScope(Dispatchers.IO).launch {
                     var message = ""
                     try {
-                        val response = StringApiManager.userApiService.updatePassword(
+                        val response = ScalarsApiManager.userApiService.updatePassword(
                             login = email.value,
                             password = newPassword.value
                         )

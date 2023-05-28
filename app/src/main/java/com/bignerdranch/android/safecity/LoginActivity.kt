@@ -31,7 +31,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.bignerdranch.android.safecity.HelperClass.AuthManager
-import com.bignerdranch.android.safecity.Managers.StringApiManager
+import com.bignerdranch.android.safecity.Managers.ScalarsApiManager
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -177,7 +177,7 @@ fun handleLogin(login: String, password: String, context: Context) {
     CoroutineScope(Dispatchers.IO).launch {
         var message: String = ""
         try {
-            val response = StringApiManager.userApiService.login(login = login, password = password)
+            val response = ScalarsApiManager.userApiService.login(login = login, password = password)
             message = response
             if (message == "Аутентификация успешна") {
                 withContext(Dispatchers.Main) {

@@ -27,7 +27,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.bignerdranch.android.safecity.HelperClass.Gender
-import com.bignerdranch.android.safecity.Managers.StringApiManager
+import com.bignerdranch.android.safecity.Managers.ScalarsApiManager
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -277,7 +277,7 @@ fun RegisterButton(
                 CoroutineScope(Dispatchers.IO).launch {
                     var message = ""
                     try {
-                        val response = StringApiManager.userApiService.addUser(
+                        val response = ScalarsApiManager.userApiService.addUser(
                             login = email.value.trim(),
                             password = password.value.trim(),
                             name = name.value.trim(),
