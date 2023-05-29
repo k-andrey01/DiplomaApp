@@ -5,12 +5,14 @@ import java.time.LocalDateTime
 
 data class Crime(
     val id: Integer,
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
-    val timeCrime: LocalDateTime,
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
-    val timeRecord: LocalDateTime,
+    val coordX: Double,
+    val coordY: Double,
+    val timeCrime: String,
     val comment: String,
-    val address: Int,
-    val type: Int,
-    val witness: Int
+    val city: String,
+    val street: String,
+    val house: String,
+    val type: String,
+    val kind: String,
+    val victims: List<Victim>
 )

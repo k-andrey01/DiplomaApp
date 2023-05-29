@@ -4,7 +4,10 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.PointF
 import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,24 +15,30 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.bignerdranch.android.safecity.DataClasses.Crime
+import com.bignerdranch.android.safecity.Managers.GsonApiManager
 import com.bignerdranch.android.safecity.ui.theme.Blue
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import com.bignerdranch.android.safecity.ui.theme.SkyBlue
 import com.bignerdranch.android.safecity.ui.theme.White
 import com.yandex.mapkit.MapKitFactory
+import com.yandex.mapkit.geometry.Point
+import com.yandex.mapkit.map.*
 import com.yandex.mapkit.mapview.MapView
+import com.yandex.runtime.image.ImageProvider
+import kotlinx.coroutines.launch
+
 
 class MainActivity : ComponentActivity() {
     private val internetPermissionRequestCode = 1
@@ -81,19 +90,15 @@ class MainActivity : ComponentActivity() {
             internetPermissionRequestCode -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Разрешение на интернет предоставлено
-                    // Продолжайте выполнение необходимой логики
                 } else {
                     // Разрешение на интернет не было предоставлено
-                    // Обработайте это соответствующим образом (например, показав диалоговое окно с просьбой предоставить разрешение)
                 }
             }
             locationPermissionRequestCode -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Разрешение на местоположение предоставлено
-                    // Продолжайте выполнение необходимой логики
                 } else {
                     // Разрешение на местоположение не было предоставлено
-                    // Обработайте это соответствующим образом (например, показав диалоговое окно с просьбой предоставить разрешение)
                 }
             }
         }
@@ -183,6 +188,63 @@ fun NavigationBar(selected: Int, context: Context) {
 @Composable
 fun MyMapView(context: Context) {
     val mapView = remember { MapView(context) }
+    var crimesList by remember { mutableStateOf(emptyList<Crime>()) }
+    var selectedCrime by remember { mutableStateOf<Crime?>(null) }
+    var showDialog by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    suspend fun fetchCrimeList() {
+        try {
+            val crimes = GsonApiManager.crimeApiService.getAllCrimesForMap()
+            crimesList = crimes
+
+            mapView.map.mapObjects.clear()
+
+            crimes.forEach { crime ->
+                val point = Point(crime.coordX, crime.coordY)
+                val marker = mapView.map.mapObjects.addPlacemark(
+                    point,
+                    ImageProvider.fromResource(context, R.drawable.money),
+                    IconStyle().apply {
+                        anchor = PointF(0.5f, 0.5f)
+                        scale = 0.15f / mapView.map.cameraPosition.zoom
+                    }
+                )
+
+                marker.addTapListener(object : MapObjectTapListener {
+                    override fun onMapObjectTap(mapObject: MapObject, point: Point): Boolean {
+                        coroutineScope.launch {
+                            selectedCrime = crime
+                            showDialog = true
+                        }
+                        return true
+                    }
+                })
+            }
+
+            mapView.map.move(
+                CameraPosition(
+                    Point(crimes.firstOrNull()?.coordX ?: 0.0, crimes.firstOrNull()?.coordY ?: 0.0),
+                    10.0f,
+                    0.0f,
+                    0.0f
+                )
+            )
+        } catch (e: Exception) {
+            Log.d("DRRR", "fvfmik ${e.message}")
+            Toast.makeText(
+                context,
+                "Не удалось получить информацию об опасностях",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            fetchCrimeList()
+        }
+    }
 
     AndroidView(
         factory = { mapView },
@@ -204,10 +266,10 @@ fun MyMapView(context: Context) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Добавляем кнопку поверх карты
+        // Add a button on top of the map
         FloatingActionButton(
             onClick = {
-                val intent = Intent(context, AddingCrimeActivity()::class.java)
+                val intent = Intent(context, AddingCrimeActivity::class.java)
                 context.startActivity(intent)
             },
             backgroundColor = Blue,
@@ -217,11 +279,55 @@ fun MyMapView(context: Context) {
         ) {
             Icon(
                 Icons.Default.Add,
-                contentDescription = "Add",
+                contentDescription = "Добавить",
                 tint = White,
                 modifier = Modifier
                     .size(45.dp)
             )
         }
+        if (showDialog && selectedCrime != null) {
+            CrimeDetailsBalloon(selectedCrime = selectedCrime!!, onCloseClicked = { showDialog = false })
+        }
     }
+}
+
+    @Composable
+fun CrimeDetailsBalloon(selectedCrime: Crime?, onCloseClicked: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = { onCloseClicked.invoke() },
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Информация", modifier = Modifier.height(30.dp), fontSize = 20.sp)
+                IconButton(
+                    onClick = { onCloseClicked.invoke() },
+                    modifier = Modifier.size(30.dp),
+                ) {
+                    Icon(Icons.Default.Close, contentDescription = "Закрыть")
+                }
+            }
+        },
+        text = {
+            Column {
+                Text("Время преступления: ${selectedCrime?.timeCrime?.replace('T', ' ')}")
+                Text("Комментарий: ${selectedCrime?.comment}")
+                Text("Город: ${selectedCrime?.city}")
+                Text("Улица: ${selectedCrime?.street}")
+                Text("Дом: ${selectedCrime?.house}")
+                Text("Тип: ${selectedCrime?.type}")
+                Text("Категория: ${selectedCrime?.kind}")
+                if (!selectedCrime?.victims.isNullOrEmpty()) {
+                    Text("Пострадавшие:")
+                    selectedCrime?.victims?.forEach { victim ->
+                        Text("- Пол: ${victim.gender}, Возраст: ${victim.age}")
+                    }
+                } else {
+                    Text("Пострадавших нет")
+                }
+            }
+        },
+        confirmButton = {}
+    )
 }

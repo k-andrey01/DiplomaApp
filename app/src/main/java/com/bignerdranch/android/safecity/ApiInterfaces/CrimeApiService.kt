@@ -1,6 +1,9 @@
 package com.bignerdranch.android.safecity.ApiInterfaces
 
+import android.telecom.Call
+import com.bignerdranch.android.safecity.DataClasses.Crime
 import com.fasterxml.jackson.annotation.JsonFormat
+import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 import java.time.LocalDateTime
@@ -17,4 +20,7 @@ interface CrimeApiService {
         @Query("type") type: Int,
         @Query("witness") witness: Int
     ): Int
+
+    @GET("crime/allForMap")
+    suspend fun getAllCrimesForMap(): List<Crime>
 }
