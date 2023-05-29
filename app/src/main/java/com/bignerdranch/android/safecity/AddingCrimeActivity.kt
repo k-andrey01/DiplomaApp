@@ -94,7 +94,7 @@ fun AddingDangerScreen(onBackPressed: () -> Unit) {
             dateOfInfo = dateOfInfo
         )
         VictimsBox(victims)
-        AddButton(city, street, city, coordX, coordY, type, comment, dateOfDanger, dateOfInfo, victims)
+        AddButton(city, street, house, coordX, coordY, type, comment, dateOfDanger, dateOfInfo, victims)
         BackButton(onBackPressed)
     }
 }
