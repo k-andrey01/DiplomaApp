@@ -1,7 +1,9 @@
 package com.bignerdranch.android.safecity
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -20,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.bignerdranch.android.safecity.ui.theme.Blue
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import com.bignerdranch.android.safecity.ui.theme.SkyBlue
@@ -28,6 +32,9 @@ import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.mapview.MapView
 
 class MainActivity : ComponentActivity() {
+    private val internetPermissionRequestCode = 1
+    private val locationPermissionRequestCode = 2
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -36,7 +43,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-
                     Column {
                         TopBar("Карта", false, onBackPressed = { onBackPressed() })
                         Box(
@@ -49,6 +55,45 @@ class MainActivity : ComponentActivity() {
                         Spacer(modifier = Modifier.height(56.dp))
                     }
                     NavigationBar(1, context = LocalContext.current)
+                }
+            }
+        }
+
+        checkInternetPermission()
+        checkLocationPermission()
+    }
+
+    private fun checkInternetPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.INTERNET), internetPermissionRequestCode)
+        }
+    }
+
+    private fun checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), locationPermissionRequestCode)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            internetPermissionRequestCode -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Разрешение на интернет предоставлено
+                    // Продолжайте выполнение необходимой логики
+                } else {
+                    // Разрешение на интернет не было предоставлено
+                    // Обработайте это соответствующим образом (например, показав диалоговое окно с просьбой предоставить разрешение)
+                }
+            }
+            locationPermissionRequestCode -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Разрешение на местоположение предоставлено
+                    // Продолжайте выполнение необходимой логики
+                } else {
+                    // Разрешение на местоположение не было предоставлено
+                    // Обработайте это соответствующим образом (например, показав диалоговое окно с просьбой предоставить разрешение)
                 }
             }
         }

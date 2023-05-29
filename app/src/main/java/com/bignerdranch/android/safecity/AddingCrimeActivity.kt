@@ -11,12 +11,14 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -29,8 +31,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.bignerdranch.android.safecity.HelperClass.AuthManager
 import com.bignerdranch.android.safecity.HelperClass.Gender
 import com.bignerdranch.android.safecity.Managers.GsonApiManager
 import com.bignerdranch.android.safecity.Managers.ScalarsApiManager
@@ -78,7 +84,7 @@ fun AddingDangerScreen(onBackPressed: () -> Unit) {
         val dateOfDanger = remember { mutableStateOf(LocalDateTime.now()) }
         val dateOfInfo = remember { mutableStateOf(LocalDateTime.now()) }
 
-        val victims = remember { mutableStateListOf<Victim>() }
+        val victims = remember { mutableStateListOf<MutableState<Victim>>() }
 
         AddressBox(coordX, coordY, city, street, house)
         DangerBox(
@@ -88,7 +94,7 @@ fun AddingDangerScreen(onBackPressed: () -> Unit) {
             dateOfInfo = dateOfInfo
         )
         VictimsBox(victims)
-        AddButton(city, street, city, coordX, coordY)
+        AddButton(city, street, city, coordX, coordY, type, comment, dateOfDanger, dateOfInfo, victims)
         BackButton(onBackPressed)
     }
 }
@@ -173,33 +179,92 @@ fun AddressBox(
         }
     }
 
-    Column(modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 16.dp)) {
-        Text(text = "Адрес происшествия")
+    if (isLoading.value) {
         Box(modifier = Modifier.border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))) {
-            if (isLoading.value) {
-                // Отображаем индикатор ожидания
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else {
+            Column(modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 16.dp)) {
+                Text(text = "Определение местоположения", modifier = Modifier.align(Alignment.CenterHorizontally))
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            }
+        }
+    } else {
+        Column(modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 16.dp)) {
+            Text(text = "Адрес происшествия")
+            Box(modifier = Modifier.border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))) {
                 Column() {
                     Row(Modifier.fillMaxWidth()) {
-                        CoordInput(label = "Широта", placeholder = "Широта", text = coordX, Modifier.weight(1f))
-                        CoordInput(label = "Долгота", placeholder = "Долгота", text = coordY, Modifier.weight(1f))
+                        CoordInput(
+                            label = "Широта",
+                            placeholder = "Широта",
+                            text = coordX,
+                            Modifier.weight(1f)
+                        )
+                        CoordInput(
+                            label = "Долгота",
+                            placeholder = "Долгота",
+                            text = coordY,
+                            Modifier.weight(1f)
+                        )
                     }
-                    AnyInput(label = "Город", placeholder = "Введите город", text = city)
-                    AnyInput(label = "Улица", placeholder = "Введите улицу", text = street)
-                    AnyInput(label = "Дом", placeholder = "Введите дом", text = house)
-                    Button(
-                        onClick = {
-                            updateCoordinates(context, city.value, street.value, house.value, coordX, coordY)
-                        },
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    ) {
-                        Text("Обновить координаты")
-                    }
+                    AddressInput(
+                        label = "Город",
+                        placeholder = "Введите город",
+                        text = city,
+                        city,
+                        street,
+                        house,
+                        coordX,
+                        coordY
+                    )
+                    AddressInput(
+                        label = "Улица",
+                        placeholder = "Введите улицу",
+                        text = street,
+                        city,
+                        street,
+                        house,
+                        coordX,
+                        coordY
+                    )
+                    AddressInput(
+                        label = "Дом",
+                        placeholder = "Введите дом",
+                        text = house,
+                        city,
+                        street,
+                        house,
+                        coordX,
+                        coordY
+                    )
                 }
             }
         }
     }
+}
+
+@Composable
+fun AddressInput(label: String, placeholder: String, text: MutableState<String>,
+                 city: MutableState<String>, street: MutableState<String>,
+                 house: MutableState<String>, coordX: MutableState<String>,
+                 coordY: MutableState<String>) {
+    val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
+
+    OutlinedTextField(
+        value = text.value,
+        onValueChange = { text.value = it; updateCoordinates(context, city.value, street.value, house.value, coordX, coordY) },
+        label = { Text(label) },
+        placeholder = { Text(text = placeholder) },
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+            .height(75.dp),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.Words,
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
+    )
 }
 
 fun updateCoordinates(context: Context, city: String, street: String, house: String, coordX: MutableState<String>, coordY: MutableState<String>) {
@@ -218,7 +283,9 @@ fun updateCoordinates(context: Context, city: String, street: String, house: Str
 }
 
 @Composable
-fun VictimsBox(victims: SnapshotStateList<Victim>){
+fun VictimsBox(victims: MutableList<MutableState<Victim>>){
+    val victimsState = remember { mutableStateListOf(*victims.toTypedArray()) }
+
     Column(Modifier.padding(16.dp)) {
         Text(text = "Пострадавшие")
         Box(modifier = Modifier.border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))) {
@@ -228,22 +295,22 @@ fun VictimsBox(victims: SnapshotStateList<Victim>){
 }
 
 @Composable
-fun VictimsList(victims: SnapshotStateList<Victim>) {
+fun VictimsList(victims: MutableList<MutableState<Victim>>) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        victims.forEachIndexed { index, victim ->
+        victims.forEachIndexed { index, victimState ->
+            val victim = victimState.value
             VictimRow(
-                gender = victim.gender,
-                age = victim.age,
-                onGenderSelected = { gender -> victims[index].gender = gender },
-                onAgeChanged = { age -> victims[index].age = age }
+                victim = victim,
+                onGenderSelected = { gender -> victimState.value = victim.copy(gender = gender) },
+                onAgeChanged = { age -> victimState.value = victim.copy(age = age) }
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
 
         // Add new victim button
         Button(
-            onClick = { victims.add(Victim(Gender.Мужской, "")) },
-            modifier = Modifier.align(Alignment.End),
+            onClick = { victims.add(mutableStateOf(Victim(Gender.Мужской, ""))) },
+            modifier = Modifier.align(Alignment.CenterHorizontally),
             colors = ButtonDefaults.buttonColors(backgroundColor = Grey, contentColor = Color.White)
         ) {
             Text(text = "Добавить пострадавшего")
@@ -253,22 +320,29 @@ fun VictimsList(victims: SnapshotStateList<Victim>) {
 
 @Composable
 fun VictimRow(
-    gender: Gender,
-    age: String,
+    victim: Victim,
     onGenderSelected: (Gender) -> Unit,
     onAgeChanged: (String) -> Unit
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        GenderDropdown(selectedGender = gender, onGenderSelected = onGenderSelected, modifier = Modifier.weight(1f))
+        val focusManager = LocalFocusManager.current
+
+        GenderDropdown(selectedGender = victim.gender, onGenderSelected = { gender -> onGenderSelected(gender) }, modifier = Modifier.weight(1f))
         OutlinedTextField(
-            value = age,
-            onValueChange = onAgeChanged,
+            value = victim.age,
+            onValueChange = { newAge -> onAgeChanged(newAge) },
             label = { Text(text = "Возраст") },
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true
+                .weight(1f)
+                .height(60.dp)
+                .padding(end = 8.dp)
+                .fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done
+            ),
+            singleLine = true,
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
         )
     }
 }
@@ -290,7 +364,6 @@ fun GenderDropdown(
 
     Row(
         modifier = modifier
-            .wrapContentHeight()
             .padding(8.dp)
             .height(60.dp)
             .fillMaxWidth()
@@ -303,7 +376,7 @@ fun GenderDropdown(
             contentDescription = "DropdownIcon",
             modifier = Modifier
                 .clickable { expanded = !expanded }
-                .padding(end = 8.dp)
+                .padding(0.dp, 0.dp, 0.dp, 8.dp)
         )
         Column() {
             Text(
@@ -395,7 +468,7 @@ fun DateTimeInput(
         )
     }
 
-    val dateTimeFormat = remember { DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm") }
+    val dateTimeFormat = remember { DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm") }
     val dateTimeText = selectedDateTime.value.format(dateTimeFormat)
 
     Row(
@@ -538,20 +611,30 @@ fun InputCommentArea(text: MutableState<String>) {
             .heightIn(max = 100.dp)
             .padding(8.dp)
             .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(8.dp)),
-        colors = textFieldColors
+        colors = textFieldColors,
+        keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.Sentences
+        )
     )
 }
 
 @Composable
-fun AddButton(city: MutableState<String>, street: MutableState<String>, house: MutableState<String>,
-              coordX: MutableState<String>, coordY: MutableState<String>) {
+fun AddButton(
+    city: MutableState<String>, street: MutableState<String>, house: MutableState<String>,
+    coordX: MutableState<String>, coordY: MutableState<String>, type: MutableState<String>,
+    comment: MutableState<String>, dateOfDanger: MutableState<LocalDateTime>,
+    dateOfInfo: MutableState<LocalDateTime>,
+    victims: MutableList<MutableState<Victim>>
+) {
     val context = LocalContext.current
 
     Button(
         onClick = {
-            var addressId: Int
+            var addressId = -1
+            var crimeId: Int
             CoroutineScope(Dispatchers.IO).launch {
                 var message = -1
+                var crimeMessage = -1;
                 var answer = ""
                 try {
                     val response = ScalarsApiManager.addressApiService.addAddress(
@@ -564,14 +647,53 @@ fun AddButton(city: MutableState<String>, street: MutableState<String>, house: M
                     message = response
                     if (message > -1) {
                         addressId = message
-                        answer = "Успешно добавлен адрес с id = ${addressId}"
+                        answer = "Успешно добавлено"
+                    }
+
+                    val typeId = ScalarsApiManager.typeApiService.getTypeByName(type.value)
+                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
+                    val dateOfDangerFormatted = dateOfDanger.value.format(formatter)
+                    val dateOfInfoFormatted = dateOfInfo.value.format(formatter)
+                    val crimeResponse = ScalarsApiManager.crimeApiService.addCrime(
+                        timeCrime = LocalDateTime.parse(dateOfDangerFormatted, formatter),
+                        timeRecord = LocalDateTime.parse(dateOfInfoFormatted, formatter),
+                        comment = comment.value,
+                        address = response,
+                        type = typeId,
+                        witness = GsonApiManager.userApiService.getUserData(AuthManager.getUsername()).id
+                    )
+                    crimeMessage = crimeResponse
+                    if (crimeMessage > -1) {
+                        crimeId = message
+                        answer = "Успешно добавлено"
                         CoroutineScope(Dispatchers.Main).launch {
                             val intent = Intent(context, MainActivity::class.java)
                             context.startActivity(intent)
                         }
                     }
+
+                    var counter = 0
+                    victims.forEachIndexed { index, victimState ->
+                        val victim = victimState.value
+                        if (victim.gender != null && victim.age != null) {
+                            val victimResponse = ScalarsApiManager.victimApiService.addVictim(
+                                gender = victim.gender.name,
+                                age = Integer.parseInt(victim.age),
+                                crime = crimeResponse
+                            )
+                            if (victimResponse.equals("Пострадавший добавлен")){
+                                counter++
+                            }
+                        }
+                    }
+                    answer += "Успешно добавлено"
+
                 } catch (e: Exception) {
                     answer = "Ошибка добавления"
+
+                    if (addressId > -1) {
+                        val deleteResponse = ScalarsApiManager.addressApiService.deleteAddress(addressId)
+                    }
                 } finally {
                     CoroutineScope(Dispatchers.Main).launch {
                         Toast.makeText(

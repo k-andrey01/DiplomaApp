@@ -145,7 +145,7 @@ fun AnyInput(label: String, placeholder: String, text: MutableState<String>) {
             .height(75.dp),
         singleLine = true,
         keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.Sentences,
+            capitalization = KeyboardCapitalization.Words,
             imeAction = ImeAction.Done
         ),
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })

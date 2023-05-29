@@ -6,4 +6,5 @@ data class Address (
     val street: String,
     val houseNumber: String,
     val coordX: Double,
-    val coordY: Double)
+    val coordY: Double
+)

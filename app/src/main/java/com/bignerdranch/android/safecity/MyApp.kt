@@ -28,8 +28,6 @@ class MyApp : Application() {
         } else {
             Intent(getApplicationContext(), LoginActivity::class.java)
         }
-        //startActivity(intent)
-        //val intent = Intent(getApplicationContext(), MainActivity::class.java)
 
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)

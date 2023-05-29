@@ -11,4 +11,5 @@ data class User(
     val surname: String,
     @JsonFormat(pattern = "yyyy-MM-dd")
     val birthdate: LocalDate,
-    val gender: String)
+    val gender: String
+)

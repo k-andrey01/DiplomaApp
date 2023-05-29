@@ -1,8 +1,10 @@
 package com.bignerdranch.android.safecity
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -30,6 +32,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.bignerdranch.android.safecity.HelperClass.AuthManager
 import com.bignerdranch.android.safecity.Managers.ScalarsApiManager
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
@@ -39,6 +43,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class LoginActivity : ComponentActivity() {
+    private val internetPermissionRequestCode = 1
+    private val locationPermissionRequestCode = 2
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -55,6 +62,45 @@ class LoginActivity : ComponentActivity() {
             }
         }
         AuthManager.init(this)
+
+        checkInternetPermission()
+        checkLocationPermission()
+    }
+
+    private fun checkInternetPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.INTERNET), internetPermissionRequestCode)
+        }
+    }
+
+    private fun checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), locationPermissionRequestCode)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            internetPermissionRequestCode -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Разрешение на интернет предоставлено
+                    // Продолжайте выполнение необходимой логики
+                } else {
+                    // Разрешение на интернет не было предоставлено
+                    // Обработайте это соответствующим образом (например, показав диалоговое окно с просьбой предоставить разрешение)
+                }
+            }
+            locationPermissionRequestCode -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Разрешение на местоположение предоставлено
+                    // Продолжайте выполнение необходимой логики
+                } else {
+                    // Разрешение на местоположение не было предоставлено
+                    // Обработайте это соответствующим образом (например, показав диалоговое окно с просьбой предоставить разрешение)
+                }
+            }
+        }
     }
 }
 
