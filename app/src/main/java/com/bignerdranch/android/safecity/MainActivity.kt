@@ -1,9 +1,12 @@
 package com.bignerdranch.android.safecity
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.PointF
 import android.location.Location
 import android.location.LocationListener
@@ -35,12 +38,15 @@ import com.bignerdranch.android.safecity.ui.theme.Blue
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
 import com.bignerdranch.android.safecity.ui.theme.SkyBlue
 import com.bignerdranch.android.safecity.ui.theme.White
+import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.*
 import com.yandex.mapkit.mapview.MapView
+import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import java.time.Duration
 import java.time.LocalDate
 
@@ -218,56 +224,21 @@ fun MyMapView(context: Context) {
     var showDialog by remember { mutableStateOf(false) }
     var showHelpDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+    val mapInitialized = remember { mutableStateOf(false) }
+    val imageCache = mutableMapOf<Int, Bitmap>()
+    var coordX by remember { mutableStateOf(55.776998) }
+    var coordY by remember { mutableStateOf(49.142134) }
 
     suspend fun fetchCrimeList() {
         try {
             val crimes = GsonApiManager.crimeApiService.getAllCrimesForMap()
             crimesList = crimes
 
-            mapView.map.mapObjects.clear()
-
-            crimes.forEach { crime ->
-                val point = Point(crime.coordX, crime.coordY)
-                var img = ImageProvider.fromResource(context, R.drawable.another)
-                when (crime.kind) {
-                    "Физические" -> img = ImageProvider.fromResource(context, R.drawable.phisical)
-                    "Имущественные" -> img = ImageProvider.fromResource(context, R.drawable.rob)
-                    "Нарушение общественной безопасности" -> img =
-                        ImageProvider.fromResource(context, R.drawable.publics)
-                    "Психологические и обман" -> img =
-                        ImageProvider.fromResource(context, R.drawable.money)
-                    "Природные и техногенные" -> img =
-                        ImageProvider.fromResource(context, R.drawable.enviroment)
-                    "ДТП" -> img = ImageProvider.fromResource(context, R.drawable.cars)
-                }
-                val marker = mapView.map.mapObjects.addPlacemark(
-                    point,
-                    img,
-                    IconStyle().apply {
-                        anchor = PointF(0.5f, 0.5f)
-                        scale = 0.15f / mapView.map.cameraPosition.zoom
-                    }
-                )
-
-                marker.addTapListener { mapObject, point ->
-                    Log.d(";fgn", ":jdhguппиапип")
-                    selectedCrime = crime
-                    showDialog = true
-                    true
-                }
-
-                val markerDate = crime.timeCrime.substringBefore('T')
-                if (Duration.between(LocalDate.parse(markerDate).atStartOfDay(), LocalDate.now().atStartOfDay()).toDays() > 365){
-                    marker.setVisible(false)
-                }else if (Duration.between(LocalDate.parse(markerDate).atStartOfDay(), LocalDate.now().atStartOfDay()).toDays() > 182){
-                    marker.opacity = 0.4f
-                }
-            }
-
             mapView.onStart()
 
-            var coordX: Double
-            var coordY: Double
+            var locationMapKit = MapKitFactory.getInstance().createUserLocationLayer(mapView.mapWindow)
+            locationMapKit.isVisible = true
+
             val locationManager =
                 context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
@@ -275,41 +246,30 @@ fun MyMapView(context: Context) {
                 override fun onLocationChanged(location: Location) {
                     coordX = location.latitude
                     coordY = location.longitude
-
-
-                    val placemark = mapView.map.mapObjects.addPlacemark(
-                        Point(coordX, coordY),
-                        ImageProvider.fromResource(context, R.drawable.location),
-                        IconStyle().apply {
-                            anchor = PointF(0.5f, 0.5f)
-                            scale = 0.1f / mapView.map.cameraPosition.zoom
-                        }
-                    )
-
-                    val cameraPosition = CameraPosition(
-                        Point(coordX, coordY),
-                        12.0f,
-                        0.0f,
-                        0.0f
-                    )
-
-                    mapView.map.move(cameraPosition)
                 }
             }
-                try {
-                    locationManager.requestLocationUpdates(
-                        LocationManager.NETWORK_PROVIDER,
-                        0L,
-                        0f,
-                        locationListener
-                    )
-                } catch (e: SecurityException) {
-                    Toast.makeText(
-                        context,
-                        e.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+            try {
+                locationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER,
+                    0L,
+                    0f,
+                    locationListener
+                )
+            } catch (e: SecurityException) {
+                Toast.makeText(
+                    context,
+                    e.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            val cameraPosition = CameraPosition(
+                Point(coordX, coordY),
+                13.0f,
+                0.0f,
+                0.0f
+            )
+            mapView.map.move(cameraPosition)
         } catch (e: Exception) {
             Toast.makeText(
                 context,
@@ -328,9 +288,54 @@ fun MyMapView(context: Context) {
     AndroidView(
         factory = { mapView },
         update = { view ->
-            MapKitFactory.getInstance().onStart()
-            if (!MapKitFactory.getInstance().isValid) {
-                MapKitFactory.getInstance().setApiKey(MyApp.apiKey)
+            if (!mapInitialized.value) {
+                MapKitFactory.getInstance().onStart()
+                if (!MapKitFactory.getInstance().isValid) {
+                    MapKitFactory.getInstance().setApiKey(MyApp.apiKey)
+                }
+                mapInitialized.value = true
+            }
+
+            view.map.mapObjects.clear()
+
+            for (crime in crimesList) {
+                var imgRes = when (crime.kind) {
+                    "Физические" -> R.drawable.phisical
+                    "Имущественные" -> R.drawable.rob
+                    "Нарушение общественной безопасности" -> R.drawable.publics
+                    "Психологические и обман" -> R.drawable.money
+                    "Природные и техногенные" -> R.drawable.enviroment
+                    "ДТП" -> R.drawable.cars
+                    else -> R.drawable.another
+                }
+
+                val bitmap =
+                    imageCache[imgRes] ?: BitmapFactory.decodeResource(context.resources, imgRes)
+                imageCache[imgRes] = bitmap
+
+                val marker = view.map.mapObjects.addPlacemark(
+                    Point(crime.coordX, crime.coordY),
+                    ImageProvider.fromBitmap(bitmap),
+                    IconStyle().apply {
+                        anchor = PointF(0.5f, 0.5f)
+                        scale = 0.075f
+                    }
+                )
+
+                marker.userData = crime
+
+                marker.addTapListener { _, _ ->
+                    selectedCrime = marker.userData as? Crime
+                    showDialog = true
+                    true
+                }
+
+                val markerDate = crime.timeCrime.substringBefore('T')
+                if (Duration.between(LocalDate.parse(markerDate).atStartOfDay(), LocalDate.now().atStartOfDay()).toDays() > 365){
+                    marker.setVisible(false)
+                }else if (Duration.between(LocalDate.parse(markerDate).atStartOfDay(), LocalDate.now().atStartOfDay()).toDays() > 182){
+                    marker.opacity = 0.4f
+                }
             }
         }
     )
@@ -348,6 +353,28 @@ fun MyMapView(context: Context) {
         Column(modifier = Modifier.align(Alignment.BottomEnd)) {
             FloatingActionButton(
                 onClick = {
+                    val cameraPosition = CameraPosition(
+                        Point(coordX, coordY),
+                        13.0f,
+                        0.0f,
+                        0.0f
+                    )
+                    mapView.map.move(cameraPosition)
+                },
+                backgroundColor = Blue,
+                modifier = Modifier
+                    .padding(8.dp)
+            ) {
+                Icon(
+                    Icons.Default.MyLocation,
+                    contentDescription = "Геолокация",
+                    tint = White,
+                    modifier = Modifier
+                        .size(45.dp)
+                )
+            }
+            FloatingActionButton(
+                onClick = {
                     showHelpDialog = true
                 },
                 backgroundColor = Blue,
@@ -362,7 +389,7 @@ fun MyMapView(context: Context) {
                         .size(45.dp)
                 )
             }
-            // Add a button on top of the map
+
             FloatingActionButton(
                 onClick = {
                     val intent = Intent(context, AddingCrimeActivity::class.java)
@@ -385,7 +412,8 @@ fun MyMapView(context: Context) {
         if (showDialog && selectedCrime != null) {
             CrimeDetailsBalloon(
                 selectedCrime = selectedCrime!!,
-                onCloseClicked = { showDialog = false })
+                onCloseClicked = { showDialog = false }
+            )
         }
 
         if (showHelpDialog) {
@@ -457,14 +485,6 @@ fun HelpDialog(onCloseClicked: () -> Unit) {
                     }
                     Row() {
                         Image(
-                            painter = painterResource(R.drawable.cars),
-                            contentDescription = "cars",
-                            modifier = Modifier.size(30.dp)
-                        )
-                        Text(" - ДТП и иные опасности с транспортом")
-                    }
-                    Row() {
-                        Image(
                             painter = painterResource(R.drawable.another),
                             contentDescription = "another",
                             modifier = Modifier.size(30.dp)
@@ -499,7 +519,7 @@ fun CrimeDetailsBalloon(selectedCrime: Crime?, onCloseClicked: () -> Unit) {
         },
         text = {
             Column {
-                Text("Время обнаружения: ${selectedCrime?.timeCrime?.replace('T', ' ')}")
+                Text("Время преступления: ${selectedCrime?.timeCrime?.replace('T', ' ')}")
                 Text("Комментарий: ${selectedCrime?.comment}")
                 Text("Город: ${selectedCrime?.city}")
                 Text("Улица: ${selectedCrime?.street}")
