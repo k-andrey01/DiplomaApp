@@ -5,7 +5,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.PointF
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -37,6 +41,8 @@ import com.yandex.mapkit.map.*
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.coroutines.launch
+import java.time.Duration
+import java.time.LocalDate
 
 
 class MainActivity : ComponentActivity() {
@@ -232,6 +238,7 @@ fun MyMapView(context: Context) {
                         ImageProvider.fromResource(context, R.drawable.money)
                     "Природные и техногенные" -> img =
                         ImageProvider.fromResource(context, R.drawable.enviroment)
+                    "ДТП" -> img = ImageProvider.fromResource(context, R.drawable.cars)
                 }
                 val marker = mapView.map.mapObjects.addPlacemark(
                     point,
@@ -242,25 +249,67 @@ fun MyMapView(context: Context) {
                     }
                 )
 
-                marker.addTapListener(object : MapObjectTapListener {
-                    override fun onMapObjectTap(mapObject: MapObject, point: Point): Boolean {
-                        coroutineScope.launch {
-                            selectedCrime = crime
-                            showDialog = true
-                        }
-                        return true
-                    }
-                })
+                marker.addTapListener { mapObject, point ->
+                    Log.d(";fgn", ":jdhguппиапип")
+                    selectedCrime = crime
+                    showDialog = true
+                    true
+                }
+
+                val markerDate = crime.timeCrime.substringBefore('T')
+                if (Duration.between(LocalDate.parse(markerDate).atStartOfDay(), LocalDate.now().atStartOfDay()).toDays() > 365){
+                    marker.setVisible(false)
+                }else if (Duration.between(LocalDate.parse(markerDate).atStartOfDay(), LocalDate.now().atStartOfDay()).toDays() > 182){
+                    marker.opacity = 0.4f
+                }
             }
 
-            mapView.map.move(
-                CameraPosition(
-                    Point(crimes.firstOrNull()?.coordX ?: 0.0, crimes.firstOrNull()?.coordY ?: 0.0),
-                    10.0f,
-                    0.0f,
-                    0.0f
-                )
-            )
+            mapView.onStart()
+
+            var coordX: Double
+            var coordY: Double
+            val locationManager =
+                context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+            val locationListener = object : LocationListener {
+                override fun onLocationChanged(location: Location) {
+                    coordX = location.latitude
+                    coordY = location.longitude
+
+
+                    val placemark = mapView.map.mapObjects.addPlacemark(
+                        Point(coordX, coordY),
+                        ImageProvider.fromResource(context, R.drawable.location),
+                        IconStyle().apply {
+                            anchor = PointF(0.5f, 0.5f)
+                            scale = 0.1f / mapView.map.cameraPosition.zoom
+                        }
+                    )
+
+                    val cameraPosition = CameraPosition(
+                        Point(coordX, coordY),
+                        12.0f,
+                        0.0f,
+                        0.0f
+                    )
+
+                    mapView.map.move(cameraPosition)
+                }
+            }
+                try {
+                    locationManager.requestLocationUpdates(
+                        LocationManager.NETWORK_PROVIDER,
+                        0L,
+                        0f,
+                        locationListener
+                    )
+                } catch (e: SecurityException) {
+                    Toast.makeText(
+                        context,
+                        e.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
         } catch (e: Exception) {
             Toast.makeText(
                 context,
@@ -303,7 +352,7 @@ fun MyMapView(context: Context) {
                 },
                 backgroundColor = Blue,
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(8.dp)
             ) {
                 Icon(
                     Icons.Default.Info,
@@ -321,7 +370,7 @@ fun MyMapView(context: Context) {
                 },
                 backgroundColor = Blue,
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(8.dp)
             ) {
                 Icon(
                     Icons.Default.Add,
@@ -408,6 +457,14 @@ fun HelpDialog(onCloseClicked: () -> Unit) {
                     }
                     Row() {
                         Image(
+                            painter = painterResource(R.drawable.cars),
+                            contentDescription = "cars",
+                            modifier = Modifier.size(30.dp)
+                        )
+                        Text(" - ДТП и иные опасности с транспортом")
+                    }
+                    Row() {
+                        Image(
                             painter = painterResource(R.drawable.another),
                             contentDescription = "another",
                             modifier = Modifier.size(30.dp)
@@ -442,7 +499,7 @@ fun CrimeDetailsBalloon(selectedCrime: Crime?, onCloseClicked: () -> Unit) {
         },
         text = {
             Column {
-                Text("Время преступления: ${selectedCrime?.timeCrime?.replace('T', ' ')}")
+                Text("Время обнаружения: ${selectedCrime?.timeCrime?.replace('T', ' ')}")
                 Text("Комментарий: ${selectedCrime?.comment}")
                 Text("Город: ${selectedCrime?.city}")
                 Text("Улица: ${selectedCrime?.street}")

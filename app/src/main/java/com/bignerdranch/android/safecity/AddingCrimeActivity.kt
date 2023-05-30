@@ -686,7 +686,7 @@ fun AddButton(
                             }
                         }
                     }
-                    answer += "Успешно добавлено"
+                    answer = "Успешно добавлено"
 
                 } catch (e: Exception) {
                     answer = "Ошибка добавления"
