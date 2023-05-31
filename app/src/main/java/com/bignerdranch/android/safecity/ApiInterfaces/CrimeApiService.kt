@@ -3,9 +3,7 @@ package com.bignerdranch.android.safecity.ApiInterfaces
 import android.telecom.Call
 import com.bignerdranch.android.safecity.DataClasses.Crime
 import com.fasterxml.jackson.annotation.JsonFormat
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Query
+import retrofit2.http.*
 import java.time.LocalDateTime
 
 interface CrimeApiService {
@@ -24,6 +22,12 @@ interface CrimeApiService {
     @GET("crime/allForMap")
     suspend fun getAllCrimesForMap(): List<Crime>
 
+    @GET("crime/allByWitness/{login}")
+    suspend fun getAllCrimesOfWitness(@Path("login") login: String): List<Crime>
+
     @GET("crime/countByKind")
     suspend fun getCountByKind(): Map<String, Integer>
+
+    @DELETE("crime/delete/{id}")
+    suspend fun deleteCrime(@Path("id") id: Integer): String
 }
