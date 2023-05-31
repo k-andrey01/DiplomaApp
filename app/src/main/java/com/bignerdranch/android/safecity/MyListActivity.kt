@@ -77,7 +77,7 @@ fun ScrollableList() {
                         }else{
                             Toast.makeText(
                                 context,
-                                response,
+                                "Не удалось удалить отметку",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
