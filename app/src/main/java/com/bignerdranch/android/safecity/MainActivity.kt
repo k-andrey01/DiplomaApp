@@ -331,10 +331,34 @@ fun MyMapView(context: Context) {
                 }
 
                 val markerDate = crime.timeCrime.substringBefore('T')
-                if (Duration.between(LocalDate.parse(markerDate).atStartOfDay(), LocalDate.now().atStartOfDay()).toDays() > 365){
-                    marker.setVisible(false)
-                }else if (Duration.between(LocalDate.parse(markerDate).atStartOfDay(), LocalDate.now().atStartOfDay()).toDays() > 182){
-                    marker.opacity = 0.4f
+                if (crime.kind.equals("Природные и техногенные")){
+                    if (Duration.between(
+                            LocalDate.parse(markerDate).atStartOfDay(),
+                            LocalDate.now().atStartOfDay()
+                        ).toDays() > 60
+                    ) {
+                        marker.setVisible(false)
+                    } else if (Duration.between(
+                            LocalDate.parse(markerDate).atStartOfDay(),
+                            LocalDate.now().atStartOfDay()
+                        ).toDays() > 30
+                    ) {
+                        marker.opacity = 0.4f
+                    }
+                }else {
+                    if (Duration.between(
+                            LocalDate.parse(markerDate).atStartOfDay(),
+                            LocalDate.now().atStartOfDay()
+                        ).toDays() > 365
+                    ) {
+                        marker.setVisible(false)
+                    } else if (Duration.between(
+                            LocalDate.parse(markerDate).atStartOfDay(),
+                            LocalDate.now().atStartOfDay()
+                        ).toDays() > 182
+                    ) {
+                        marker.opacity = 0.4f
+                    }
                 }
             }
         }
@@ -482,6 +506,14 @@ fun HelpDialog(onCloseClicked: () -> Unit) {
                             modifier = Modifier.size(30.dp)
                         )
                         Text(" - Природные и техногенные опасности")
+                    }
+                    Row() {
+                        Image(
+                            painter = painterResource(R.drawable.cars),
+                            contentDescription = "env",
+                            modifier = Modifier.size(30.dp)
+                        )
+                        Text(" - ДТП")
                     }
                     Row() {
                         Image(
