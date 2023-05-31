@@ -2,6 +2,7 @@ package com.bignerdranch.android.safecity
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -58,6 +59,7 @@ class MyListActivity : ComponentActivity() {
 @Composable
 fun ScrollableList() {
     val crimes = remember { mutableStateListOf<Crime>() }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         fetchCrimeList(crimes)
@@ -69,8 +71,16 @@ fun ScrollableList() {
                 crime,
                 onDeleteClick = {
                     CoroutineScope(Dispatchers.IO).launch {
-                        ScalarsApiManager.crimeApiService.deleteCrime(crime.id)
-                        crimes.remove(crime)
+                        val response = ScalarsApiManager.crimeApiService.deleteCrime(crime.id)
+                        if (response.equals("Удалено")) {
+                            crimes.remove(crime)
+                        }else{
+                            Toast.makeText(
+                                context,
+                                response,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 }
             )
