@@ -519,7 +519,7 @@ fun CrimeDetailsBalloon(selectedCrime: Crime?, onCloseClicked: () -> Unit) {
         },
         text = {
             Column {
-                Text("Время преступления: ${selectedCrime?.timeCrime?.replace('T', ' ')}")
+                Text("Дата и время обнаружения: ${selectedCrime?.timeCrime?.replace('T', ' ')}")
                 Text("Комментарий: ${selectedCrime?.comment}")
                 Text("Город: ${selectedCrime?.city}")
                 Text("Улица: ${selectedCrime?.street}")

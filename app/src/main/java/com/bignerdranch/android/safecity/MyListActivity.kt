@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.bignerdranch.android.safecity.Managers.GsonApiManager
 import com.bignerdranch.android.safecity.ui.theme.Blue
 import com.bignerdranch.android.safecity.ui.theme.Red
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
@@ -46,18 +47,22 @@ class MyListActivity : ComponentActivity() {
 
 @Composable
 fun ScrollableList() {
+//    suspend fun fetchCrimeList() {
+//
+//    }
+//    val crimes = GsonApiManager.crimeApiService.getAllCrimesForMap()
     val items = remember { mutableStateListOf("Item 1", "Item 2", "Item 3") }
 
     Column(Modifier.verticalScroll(rememberScrollState())) {
         items.forEachIndexed { index, item ->
-            ListItem(item, onDeleteClick = { /*TODO*/ }, onEditClick = { /*TODO*/ })
+            ListItem(item, onDeleteClick = { /*TODO*/ })
             Divider()
         }
     }
 }
 
 @Composable
-fun ListItem(item: String, onDeleteClick: () -> Unit, onEditClick: () -> Unit) {
+fun ListItem(item: String, onDeleteClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -65,9 +70,6 @@ fun ListItem(item: String, onDeleteClick: () -> Unit, onEditClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(item, Modifier.weight(1f), color = Blue)
-        IconButton(onClick = onEditClick) {
-            Icon(Icons.Default.Edit, contentDescription = "Edit", tint = SkyBlue)
-        }
         IconButton(onClick = onDeleteClick) {
             Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Red)
         }

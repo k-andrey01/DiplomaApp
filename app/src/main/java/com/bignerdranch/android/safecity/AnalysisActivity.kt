@@ -1,30 +1,32 @@
 package com.bignerdranch.android.safecity
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.bignerdranch.android.safecity.ui.theme.Aqua
+import com.bignerdranch.android.safecity.Managers.GsonApiManager
 import com.bignerdranch.android.safecity.ui.theme.Blue
 import com.bignerdranch.android.safecity.ui.theme.SafeCityTheme
-import com.bignerdranch.android.safecity.ui.theme.SkyBlue
 import me.bytebeats.views.charts.pie.PieChart
 import me.bytebeats.views.charts.pie.PieChartData
 import me.bytebeats.views.charts.pie.render.SimpleSliceDrawer
 import me.bytebeats.views.charts.simpleChartAnimation
+import kotlin.random.Random
 
 class AnalysisActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,15 +51,18 @@ class AnalysisActivity : ComponentActivity() {
 
 @Composable
 fun DropdownListWithDiagram() {
-    DropdownList()
+    var selectedOption by remember { mutableStateOf(0) }
+
+    DropdownList(selectedOption, onOptionSelected = { newOption ->
+        selectedOption = newOption
+    })
     Spacer(modifier = Modifier.height(50.dp))
-    Chart()
+    Chart(selectedOption = selectedOption)
 }
 
 @Composable
-fun DropdownList() {
-    val options = listOf("Option 1", "Option 2", "Option 3")
-    var selectedOption by remember { mutableStateOf(0) }
+fun DropdownList(selectedOption: Int, onOptionSelected: (Int) -> Unit) {
+    val options = listOf("Возраст пострадавших", "Пол пострадавших", "Время суток", "Вид опасности")
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier
@@ -86,7 +91,7 @@ fun DropdownList() {
         ) {
             options.forEachIndexed { index, option ->
                 DropdownMenuItem(onClick = {
-                    selectedOption = index
+                    onOptionSelected(index)
                     expanded = false
                 }) {
                     Text(text = option, color = Blue)
@@ -96,21 +101,91 @@ fun DropdownList() {
     }
 }
 
+
 @Composable
-fun Chart() {
+fun Chart(selectedOption: Int) {
+    when (selectedOption){
+        0 -> {}
+        1 -> {}
+        2 -> {}
+        3 -> { PieChartWithCountByKind() }
+    }
+}
+
+@Composable
+fun PieChartWithCountByKind() {
+    val data = remember { mutableStateOf(emptyMap<String, Integer>()) }
+
+    suspend fun fetchTypeList(data: MutableState<Map<String, Integer>>){
+        val countByKind = GsonApiManager.crimeApiService.getCountByKind()
+        data.value = countByKind
+    }
+
+    LaunchedEffect(Unit) {
+        fetchTypeList(data)
+    }
+
+    var slicesDesc: MutableList<Description> = mutableListOf()
+    val slices = data.value.map { (kind, count) ->
+        val color = generateRandomColor()
+        slicesDesc.add(Description(color, kind, count))
+
+        PieChartData.Slice(
+            count.toFloat(),
+            color
+        )
+    }
+
     PieChart(
-        pieChartData = PieChartData(
-            slices = listOf(
-                PieChartData.Slice(30f, Blue),
-                PieChartData.Slice(50f, Aqua),
-                PieChartData.Slice(20f, SkyBlue)
-            )
-        ),
-        // Optional properties.
+        pieChartData = PieChartData(slices = slices),
         modifier = Modifier
             .fillMaxWidth()
             .height(350.dp),
         animation = simpleChartAnimation(),
         sliceDrawer = SimpleSliceDrawer()
     )
+
+    Spacer(modifier = Modifier.height(25.dp))
+
+    Box(
+        modifier = Modifier
+            .padding(8.dp)
+            .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            slicesDesc.forEachIndexed { index, slice ->
+                val color = slice.color.toArgb()
+                val label = "${slice.label} - ${slice.count}"
+
+                Row(
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .background(Color(color))
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = label)
+                }
+            }
+        }
+    }
+}
+
+data class Description(
+    val color: Color,
+    val label: String,
+    val count: Integer
+)
+
+fun generateRandomColor(): Color {
+    val red = Random.nextInt(0, 256)
+    val green = Random.nextInt(0, 256)
+    val blue = Random.nextInt(0, 256) // Генерация случайного значения синего компонента
+    return Color(red, green, blue)
 }

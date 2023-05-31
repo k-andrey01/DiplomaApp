@@ -23,4 +23,7 @@ interface CrimeApiService {
 
     @GET("crime/allForMap")
     suspend fun getAllCrimesForMap(): List<Crime>
+
+    @GET("crime/countByKind")
+    suspend fun getCountByKind(): Map<String, Integer>
 }
