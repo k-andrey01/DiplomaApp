@@ -84,20 +84,12 @@ class LoginActivity : ComponentActivity() {
         when (requestCode) {
             internetPermissionRequestCode -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Разрешение на интернет предоставлено
-                    // Продолжайте выполнение необходимой логики
                 } else {
-                    // Разрешение на интернет не было предоставлено
-                    // Обработайте это соответствующим образом (например, показав диалоговое окно с просьбой предоставить разрешение)
                 }
             }
             locationPermissionRequestCode -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Разрешение на местоположение предоставлено
-                    // Продолжайте выполнение необходимой логики
                 } else {
-                    // Разрешение на местоположение не было предоставлено
-                    // Обработайте это соответствующим образом (например, показав диалоговое окно с просьбой предоставить разрешение)
                 }
             }
         }
@@ -233,7 +225,7 @@ fun handleLogin(login: String, password: String, context: Context) {
                 }
             }
         } catch (e: Exception) {
-            message = "Error"
+            message = "Ошибка"
         } finally {
             CoroutineScope(Dispatchers.Main).launch {
                 Toast.makeText(
