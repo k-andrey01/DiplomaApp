@@ -28,6 +28,9 @@ interface CrimeApiService {
     @GET("crime/countByKind")
     suspend fun getCountByKind(): Map<String, Integer>
 
+    @GET("crime/countByTime")
+    suspend fun getCountByTime(): Map<String, Integer>
+
     @DELETE("crime/delete/{id}")
     suspend fun deleteCrime(@Path("id") id: Integer): String
 }

@@ -3,6 +3,7 @@ package com.bignerdranch.android.safecity.Managers
 import com.bignerdranch.android.safecity.ApiInterfaces.CrimeApiService
 import com.bignerdranch.android.safecity.ApiInterfaces.TypeApiService
 import com.bignerdranch.android.safecity.ApiInterfaces.UserApiService
+import com.bignerdranch.android.safecity.ApiInterfaces.VictimApiService
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
@@ -36,6 +37,8 @@ object GsonApiManager {
         get() = retrofit.create(TypeApiService::class.java)
     val crimeApiService: CrimeApiService
         get() = retrofit.create(CrimeApiService::class.java)
+    val victimApiService: VictimApiService
+        get() = retrofit.create(VictimApiService::class.java)
 
     private class LocalDateDeserializer : JsonDeserializer<LocalDate> {
         private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")

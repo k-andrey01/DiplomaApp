@@ -105,37 +105,15 @@ fun DropdownList(selectedOption: Int, onOptionSelected: (Int) -> Unit) {
 @Composable
 fun Chart(selectedOption: Int) {
     when (selectedOption){
-        0 -> {}
-        1 -> {}
-        2 -> {}
+        0 -> { PieChartWithCountByAgeGroup() }
+        1 -> { PieChartWithCountByGender() }
+        2 -> { PieChartWithCountByTime() }
         3 -> { PieChartWithCountByKind() }
     }
 }
 
 @Composable
-fun PieChartWithCountByKind() {
-    val data = remember { mutableStateOf(emptyMap<String, Integer>()) }
-
-    suspend fun fetchTypeList(data: MutableState<Map<String, Integer>>){
-        val countByKind = GsonApiManager.crimeApiService.getCountByKind()
-        data.value = countByKind
-    }
-
-    LaunchedEffect(Unit) {
-        fetchTypeList(data)
-    }
-
-    var slicesDesc: MutableList<Description> = mutableListOf()
-    val slices = data.value.map { (kind, count) ->
-        val color = generateRandomColor()
-        slicesDesc.add(Description(color, kind, count))
-
-        PieChartData.Slice(
-            count.toFloat(),
-            color
-        )
-    }
-
+fun Diagram(slices:  List<PieChartData.Slice>, slicesDesc: MutableList<Description>){
     PieChart(
         pieChartData = PieChartData(slices = slices),
         modifier = Modifier
@@ -175,6 +153,114 @@ fun PieChartWithCountByKind() {
             }
         }
     }
+}
+
+@Composable
+fun PieChartWithCountByTime(){
+    val data = remember { mutableStateOf(emptyMap<String, Integer>()) }
+
+    suspend fun fetchAgeList(data: MutableState<Map<String, Integer>>){
+        val countByAgeGroup = GsonApiManager.crimeApiService.getCountByTime()
+        data.value = countByAgeGroup
+    }
+
+    LaunchedEffect(Unit){
+        fetchAgeList(data)
+    }
+
+    var slicesDesc: MutableList<Description> = mutableListOf()
+    var slices = data.value.map { (age, count) ->
+        val color = generateRandomColor()
+        slicesDesc.add(Description(color, age, count))
+
+        PieChartData.Slice(
+            count.toFloat(),
+            color
+        )
+    }
+
+    Diagram(slices = slices, slicesDesc = slicesDesc)
+}
+
+@Composable
+fun PieChartWithCountByAgeGroup(){
+    val data = remember { mutableStateOf(emptyMap<String, Integer>()) }
+
+    suspend fun fetchAgeList(data: MutableState<Map<String, Integer>>){
+        val countByAgeGroup = GsonApiManager.victimApiService.getCountByAgeGroup()
+        data.value = countByAgeGroup
+    }
+
+    LaunchedEffect(Unit){
+        fetchAgeList(data)
+    }
+
+    var slicesDesc: MutableList<Description> = mutableListOf()
+    var slices = data.value.map { (age, count) ->
+        val color = generateRandomColor()
+        slicesDesc.add(Description(color, age, count))
+
+        PieChartData.Slice(
+            count.toFloat(),
+            color
+        )
+    }
+
+    Diagram(slices = slices, slicesDesc = slicesDesc)
+}
+
+@Composable
+fun PieChartWithCountByGender() {
+    val data = remember { mutableStateOf(emptyMap<String, Integer>()) }
+
+    suspend fun fetchGenderList(data: MutableState<Map<String, Integer>>){
+        val countByGender = GsonApiManager.victimApiService.getCountByGender()
+        data.value = countByGender
+    }
+
+    LaunchedEffect(Unit){
+        fetchGenderList(data)
+    }
+
+    var slicesDesc: MutableList<Description> = mutableListOf()
+    var slices = data.value.map { (gender, count) ->
+        val color = generateRandomColor()
+        slicesDesc.add(Description(color, gender, count))
+
+        PieChartData.Slice(
+            count.toFloat(),
+            color
+        )
+    }
+
+    Diagram(slices = slices, slicesDesc = slicesDesc)
+}
+
+@Composable
+fun PieChartWithCountByKind() {
+    val data = remember { mutableStateOf(emptyMap<String, Integer>()) }
+
+    suspend fun fetchTypeList(data: MutableState<Map<String, Integer>>){
+        val countByKind = GsonApiManager.crimeApiService.getCountByKind()
+        data.value = countByKind
+    }
+
+    LaunchedEffect(Unit) {
+        fetchTypeList(data)
+    }
+
+    var slicesDesc: MutableList<Description> = mutableListOf()
+    val slices = data.value.map { (kind, count) ->
+        val color = generateRandomColor()
+        slicesDesc.add(Description(color, kind, count))
+
+        PieChartData.Slice(
+            count.toFloat(),
+            color
+        )
+    }
+
+    Diagram(slices = slices, slicesDesc = slicesDesc)
 }
 
 data class Description(

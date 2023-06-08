@@ -51,7 +51,7 @@ class RegTest {
     @get:Rule
     val regTestRule = createAndroidComposeRule<RegistrationActivity>()
     @Test
-    fun editPassWithError() {
+    fun regWithError() {
         regTestRule.waitForIdle()
 
         regTestRule.onNodeWithText("Email").performTextInput("sergeytukalsky@gmail.com")
@@ -73,7 +73,7 @@ class AddCrimeTest {
     @get:Rule
     val crimeTestRule = createAndroidComposeRule<AddingCrimeActivity>()
     @Test
-    fun editPassWithError() {
+    fun addCrimeWithError() {
         crimeTestRule.waitForIdle()
 
         crimeTestRule.onNodeWithText("Комментарий").performTextInput("sergeytukalsky@gmail.com")
