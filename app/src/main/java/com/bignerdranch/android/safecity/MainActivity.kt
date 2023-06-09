@@ -285,6 +285,8 @@ fun MyMapView(context: Context) {
         }
     }
 
+    val markers = mutableListOf<PlacemarkMapObject>()
+    val markerListeners = mutableListOf<MapObjectTapListener>()
     AndroidView(
         factory = { mapView },
         update = { view ->
@@ -324,11 +326,12 @@ fun MyMapView(context: Context) {
 
                 marker.userData = crime
 
-                marker.addTapListener { _, _ ->
+                val markerListener = MapObjectTapListener { _, _ ->
                     selectedCrime = marker.userData as? Crime
                     showDialog = true
                     true
                 }
+                marker.addTapListener(markerListener)
 
                 val markerDate = crime.timeCrime.substringBefore('T')
                 if (crime.kind.equals("Природные и техногенные")){
@@ -360,6 +363,9 @@ fun MyMapView(context: Context) {
                         marker.opacity = 0.4f
                     }
                 }
+
+                markers.add(marker)
+                markerListeners.add(markerListener)
             }
         }
     )
@@ -432,17 +438,17 @@ fun MyMapView(context: Context) {
                 )
             }
         }
+    }
 
-        if (showDialog && selectedCrime != null) {
-            CrimeDetailsBalloon(
-                selectedCrime = selectedCrime!!,
-                onCloseClicked = { showDialog = false }
-            )
-        }
+    if (showDialog && selectedCrime != null) {
+        CrimeDetailsBalloon(
+            selectedCrime = selectedCrime!!,
+            onCloseClicked = { showDialog = false }
+        )
+    }
 
-        if (showHelpDialog) {
-            HelpDialog(onCloseClicked = { showHelpDialog = false })
-        }
+    if (showHelpDialog) {
+        HelpDialog(onCloseClicked = { showHelpDialog = false })
     }
 }
 
